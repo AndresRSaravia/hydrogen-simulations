@@ -23,7 +23,7 @@ def view_clssic(json_name):
 			iend = len(averagesmu)
 			plt.plot(np.linspace(mubot,mutop,mun)[istart:iend],averagesmu[istart:iend],'--o')
 			T.append(int(dicchosen["Ti"]))
-			plt.legend(["ida","vuelta"])
+			plt.legend(["promedio"])
 			plt.title(modes[mode]+" T: "+str(dicchosen["Ti"]))
 			plt.xlabel('valores μ')
 			plt.ylabel('promedios')
