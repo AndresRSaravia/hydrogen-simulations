@@ -59,8 +59,6 @@ def get_clusters(matrix,n,diagflag=0):
 			hydrogens.pop(0)
 	return clusters
 
-cmp = ListedColormap(['gray', 'yellow', 'cyan', 'blue'])
-
 def view_kawasaki(json_name):
 	with open(json_name) as file:
 		json_contents = json.load(file)
@@ -71,17 +69,35 @@ def view_kawasaki(json_name):
 		Ti = json_contents[key]["Ti"]
 		niter = json_contents[key]["niter"]
 		selections = json_contents[key]['selections']
-		for selkey in selections.keys():
-			selected = selections[selkey]
+		iterlist = []
+		clusterlist = []
+		for iteration in selections.keys():
+			selected = selections[iteration]
 			if ("matrix" in selected):
 				matrix = selected["matrix"]
+				cover = np.mean(matrix)
 				clusters = get_clusters(matrix,n,0)
 				for kcluster in clusters.keys():
 					for indexes in clusters[kcluster]:
 						(i,j) = indexes
 						matrix[i][j] = kcluster+100
-				plt.matshow(matrix, cmap='rainbow')
+				fig, (ax1) = plt.subplots(ncols=1, figsize=(10, 5))
+				ax1.matshow(matrix, cmap='rainbow')
+				title = f"n={n} T={Ti} cover={cover} iter={iteration}".format(n,Ti,cover,iteration)
+				ax1.set_title(title)
 				#plt.axis('off')
-				print(max(clusters.keys()))
+				iterlist.append(iteration)
+				clusterlist.append(max(clusters.keys())+1)
+				print(Ti,iteration,max(clusters.keys())+1)
+		plt.show()
+		print(iterlist,clusterlist)
+		plt.plot(iterlist, clusterlist, marker = 'o')
+		plt.show()
 
-view_kawasaki('../out_files/mc_kawasaki.json')
+filenames = [
+	"../out_files/mc_kawasaki (100x100, 0.3, 3000 iter).json",
+	"../out_files/mc_kawasaki (100x100, 0.5, 3000 iter).json",
+	"../out_files/mc_kawasaki (100x100, 0.7, 3000 iter).json"
+]
+for filename in filenames:
+	view_kawasaki(filename)

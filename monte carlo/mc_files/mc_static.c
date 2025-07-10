@@ -67,7 +67,7 @@ data_tuple mc_kawasaki_selection(int **matrix, int n, double k0, double T) {
 			numnei_kl = get_numnei(k,l,n,matrix);
 			copy_from_matrix(k,l,n,tmpmatrix_kl,matrix);
 			diff_energy_kl = get_lookup_value(tmpmatrix_kl, numnei_kl);
-			Eads = diff_energy_ij - diff_energy_kl;
+			Eads = diff_energy_kl - diff_energy_ij;
 		} else {
 			numnei_kl = get_numnei(k,l,n,matrix);
 			copy_from_matrix(k,l,n,tmpmatrix_kl,matrix);
@@ -76,7 +76,7 @@ data_tuple mc_kawasaki_selection(int **matrix, int n, double k0, double T) {
 			numnei_ij = get_numnei(i,j,n,matrix);
 			copy_from_matrix(i,j,n,tmpmatrix_ij,matrix);
 			diff_energy_ij = get_lookup_value(tmpmatrix_ij, numnei_ij);
-			Eads = diff_energy_kl - diff_energy_ij;
+			Eads = diff_energy_ij - diff_energy_kl;
 		}
 		//printf("diff de ese momento: %lf ; %lf\n", diff_energy_ij,diff_energy_kl);
 		//printf("Eads de ese momento: %lf\n", Eads);
@@ -109,10 +109,10 @@ void mc_kawasaki() {
 	// Initialization of variables
 	int n = 100; // 100
 	double k0 = 8.617333262e-5;
-	double T[] = {100.,200.,300.,400.,500.,600.,700.,800.,900.,1000.};
-	int Tn = 10; // 10
-	int niter = 1000; // 100000 CAREFUL WITH THIS, BIG NUMBERS -> BIG STORAGE ISSUES // CUIDADO CON QUE TE LLENE LA COMPU
-	int eachiter = 10;
+	double T[] = {20.,40.,60.,80.,100.};
+	int Tn = 5; // 10
+	int niter = 3000; // 100000 CAREFUL WITH THIS, BIG NUMBERS -> BIG STORAGE ISSUES // CUIDADO CON QUE TE LLENE LA COMPU
+	int eachiter = 100;
 	// File variable
 	FILE *mc_kawasaki_file;
 	mc_kawasaki_file = fopen("out_files/mc_kawasaki.json", "w");
@@ -127,7 +127,7 @@ void mc_kawasaki() {
 		time(&tstart);
 		fprintf(mc_kawasaki_file, "\t\t\"selections\": {\n");
 		int **matrix = initialize_matrix(n);
-		cover_matrix(matrix,n,0.5);
+		cover_matrix(matrix,n,0.7);
 		for (int iter = 0; iter < niter; iter++) {
 			for (int try = 0; try < n*n; try++) {
 				data_tuple data = mc_kawasaki_selection(matrix,n,k0,T[index]);
@@ -135,7 +135,7 @@ void mc_kawasaki() {
 			}
 			double Eads_mean = get_Eads_mean(matrix,n);
 			printf("mc simulation T: %lf, iter: %d, Eads mean: %lf\n", T[index], iter, Eads_mean);
-			if (iter==niter-1) { //iter%10==0 || 
+			if (iter%eachiter==0 || iter==niter-1) { //iter%10==0 || 
 				fprintf(mc_kawasaki_file, "\t\t\t\"%d\": {\n", iter);
 				//fprintf(mc_kawasaki_file, "\t\t\t\t\"indexes_ijkl_postvalues\": [[%d,%d,%d],[%d,%d,%d]],\n", data.index_i, data.index_j, matrix[data.index_i][data.index_j], data.index_k, data.index_l, matrix[data.index_k][data.index_l]);
 				fprintf(mc_kawasaki_file, "\t\t\t\t\"matrix\": [\n");
