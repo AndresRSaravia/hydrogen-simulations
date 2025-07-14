@@ -136,6 +136,13 @@ outvalues = [
 	[("v8c00c",-6446.66638754),("v8c00s",-6445.44907972)],
 ]
 
+outvalues = [
+	[("v0c00c",-7542.0540126735),("v0c00s",-7540.8383319886)],
+	[("v4c00c",-7546.9210655098),("v4c00s",-7545.7045484252)],
+	[("v4c01c",-7546.9212273564),("v4c01s",-7545.7032513009)],
+	[("v8c00c",-7551.7915005573),("v8c00s",-7550.5728446869)],
+]
+
 for item in outvalues:
 	outname = item[0][0]
 	outvalc = item[0][1]
@@ -146,24 +153,26 @@ for item in outvalues:
 print(poss_pos_better)
 
 Eadslist = []
-text = "\\begin{center}\n\\begin{tabular}{|c|c|}\n"
+text = "\\begin{center}\n\\begin{tabular}{|c|c|}\n\hline\n"
 text += "key & Eads \\\\ \hline\n"
 for key in poss_pos_better:
-	Eads = poss_pos_better[key]["Eads"]
-	text += str(key)+" & "+str(Eads)+"\\\\ \hline\n"
-	Eadslist.append(Eads)
+	if "Eads" in poss_pos_better[key].keys():
+		Eads = poss_pos_better[key]["Eads"]
+		text += str(key)+" & "+str(Eads)+" \\\\ \hline\n"
+		Eadslist.append(Eads)
 text += "\end{tabular}\n\end{center}\n"
 print(text)
 
 Jlist = []
-text = "\\begin{center}\n\\begin{tabular}{|c|c|}\n"
+text = "\\begin{center}\n\\begin{tabular}{|c|c|}\n\hline\n"
 text += "key & J \\\\ \hline\n"
 for key in poss_pos_better:
 	#print(poss_pos_better["v0c00c"]["Eads"])
 	if(key!="v0c00c"):
-		J = (poss_pos_better[key]["Eads"]-poss_pos_better["v0c00c"]["Eads"])/int(key[1])
-		text += str(key)+" & "+str(J)+"\\\\ \hline\n"
-		Jlist.append(J)
+		if "Eads" in poss_pos_better[key].keys():
+			J = (poss_pos_better[key]["Eads"]-poss_pos_better["v0c00c"]["Eads"])/int(key[1])
+			text += str(key)+" & "+str(J)+" \\\\ \hline\n"
+			Jlist.append(J)
 text += "\end{tabular}\n\end{center}\n"
 print(text)
 
