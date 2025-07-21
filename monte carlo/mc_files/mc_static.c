@@ -107,12 +107,13 @@ data_tuple mc_kawasaki_selection(int **matrix, int n, double k0, double T) {
 // Monte Carlo (Kawasaki)
 void mc_kawasaki() {
 	// Initialization of variables
-	int n = 100; // 100
+	int n = 200; // 100
 	double k0 = 8.617333262e-5;
 	double T[] = {20.,40.,60.,80.,100.};
 	int Tn = 5; // 10
 	int niter = 3000; // 100000 CAREFUL WITH THIS, BIG NUMBERS -> BIG STORAGE ISSUES // CUIDADO CON QUE TE LLENE LA COMPU
 	int eachiter = 100;
+	double cover = 0.7;
 	// File variable
 	FILE *mc_kawasaki_file;
 	mc_kawasaki_file = fopen("out_files/mc_kawasaki.json", "w");
@@ -127,7 +128,7 @@ void mc_kawasaki() {
 		time(&tstart);
 		fprintf(mc_kawasaki_file, "\t\t\"selections\": {\n");
 		int **matrix = initialize_matrix(n);
-		cover_matrix(matrix,n,0.7);
+		cover_matrix(matrix,n,cover);
 		for (int iter = 0; iter < niter; iter++) {
 			for (int try = 0; try < n*n; try++) {
 				data_tuple data = mc_kawasaki_selection(matrix,n,k0,T[index]);
