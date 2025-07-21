@@ -104,7 +104,7 @@ def view_kawasaki(json_name):
 				cover = np.mean(matrix)
 				clusters = get_clusters(matrix,n,0)
 				title = f"n={n} T={Ti} cover={cover} iter={int(iteration):04d}/{niter-1}"
-				histogram_cluster_plot(clusters,title,inf=500)
+				#histogram_cluster_plot(clusters,title,inf=500)
 				#general_matrix_plot(matrix,clusters,title)
 				iterlist.append(int(iteration))
 				for inf in clusterlists.keys():
@@ -112,12 +112,12 @@ def view_kawasaki(json_name):
 				print(Ti,iteration,get_cluster_number(clusters),get_cluster_number(clusters,inf=1),get_cluster_number(clusters,inf=2))
 				
 		title = f"n={n} T={Ti} cover={cover}"
-		#plt.title(title)
+		plt.title(title)
 		for inf in clusterlists.keys():
 			print(1)
-			#general_plot(iterlist[1:],clusterlists[inf][1:],title)
-		#plt.legend([f">{elem}" for elem in clusterlists.keys()])
-		#plt.show()
+			general_plot(iterlist[1:],clusterlists[inf][1:],title)
+		plt.legend([f">{elem}" for elem in clusterlists.keys()])
+		plt.show()
 
 filenames = [
 	"../out_files/mc_kawasaki (200x200, 0.3, 3000 iter).json",
