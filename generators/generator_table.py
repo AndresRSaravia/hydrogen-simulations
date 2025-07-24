@@ -136,7 +136,7 @@ outvalues = [
 	[("v8c00c",-6446.66638754),("v8c00s",-6445.44907972)],
 ]
 
-outvalues = [
+outvalues1 = [
 	[("v0c00c",-7542.0540126735),("v0c00s",-7540.8383319886)],
 	[("v4c00c",-7546.9210655098),("v4c00s",-7545.7045484252)],
 	[("v4c01c",-7546.9212273564),("v4c01s",-7545.7032513009)],
@@ -149,6 +149,7 @@ for item in outvalues:
 	outvals = item[1][1]
 	outdiff = (outvalc-outvals)*13.605684958731
 	Eads = (outdiff - 0.5*(-31.744828518))
+	poss_pos_better[outname]["diffcs"] = outdiff
 	poss_pos_better[outname]["Eads"] = Eads
 print(poss_pos_better)
 
