@@ -96,7 +96,7 @@ def view_kawasaki(json_name):
 		niter = json_contents[key]["niter"]
 		selections = json_contents[key]['selections']
 		iterlist = []
-		clusterlists = {elem:[] for elem in range(5,8,1)}
+		clusterlists = {elem:[] for elem in range(5,8,1)} #range(100,201,50)
 		for iteration in selections.keys():
 			selected = selections[iteration]
 			if ("matrix" in selected):
@@ -104,25 +104,26 @@ def view_kawasaki(json_name):
 				cover = np.mean(matrix)
 				clusters = get_clusters(matrix,n,0)
 				title = f"n={n} T={Ti} cover={cover} iter={int(iteration):04d}/{niter-1}"
-				#histogram_cluster_plot(clusters,title,inf=500)
+				histogram_cluster_plot(clusters,title,inf=20)
 				#general_matrix_plot(matrix,clusters,title)
 				iterlist.append(int(iteration))
 				for inf in clusterlists.keys():
 					clusterlists[inf].append(get_cluster_number(clusters,inf=inf))
 				print(Ti,iteration,get_cluster_number(clusters),get_cluster_number(clusters,inf=1),get_cluster_number(clusters,inf=2))
-				
-		title = f"n={n} T={Ti} cover={cover}"
-		plt.title(title)
-		for inf in clusterlists.keys():
-			print(1)
-			general_plot(iterlist[1:],clusterlists[inf][1:],title)
-		plt.legend([f">{elem}" for elem in clusterlists.keys()])
-		plt.show()
+		if False:
+			title = f"n={n} T={Ti} cover={cover}"
+			plt.title(title)
+			for inf in clusterlists.keys():
+				print(1)
+				general_plot(iterlist[1:],clusterlists[inf][1:],title)
+			plt.legend([f">{elem}" for elem in clusterlists.keys()])
+			plt.show()
 
 filenames = [
 	"../out_files/mc_kawasaki (200x200, 0.3, 3000 iter).json",
 	"../out_files/mc_kawasaki (200x200, 0.5, 3000 iter).json",
 	"../out_files/mc_kawasaki (200x200, 0.7, 3000 iter).json"
 ]
+
 for filename in filenames:
 	view_kawasaki(filename)

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 
-def view_clssic(json_name):
+def view_classic(json_name):
 	with open(json_name) as file:
 		json_contents = json.load(file)
 	print(sum([json_contents[key]['time'] for key in json_contents.keys()]))
@@ -29,4 +29,10 @@ def view_clssic(json_name):
 			plt.ylabel('promedios')
 			plt.show()
 
-view_clssic('../out_files/mc_classic.json')
+filenames = [
+	"../out_files/mc_classic.json",
+	"../out_files/mc_classic (backup).json"
+]
+
+for filename in filenames:
+	view_classic(filename)
