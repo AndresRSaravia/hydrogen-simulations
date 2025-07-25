@@ -22,7 +22,7 @@ typedef struct
 
 /* ---------------- Monte Carlo functions ---------------- */
 // Monte Carlo step
-void mc_step(int **matrix, int n, double mu, double k0, double T) {
+void mc_n2tries(int **matrix, int n, double mu, double k0, double T) {
 	int **tmpmatrix = initialize_matrix(3);
 	for (int tmpk = 0; tmpk < n*n; tmpk++) {
 		/*if (tmpk%1000 == 0) {
@@ -34,7 +34,7 @@ void mc_step(int **matrix, int n, double mu, double k0, double T) {
 		int numnei = get_numnei(i,j,n,matrix);
 		copy_from_matrix(i,j,n,tmpmatrix,matrix);
 		double diff_energy = get_lookup_value(tmpmatrix, numnei);
-		double Eads = diff_energy - 0.5*(-31.744828518); // -3.6 + numnei * 0.1;
+		double Eads = diff_energy - E_H;
 		//printf("diff de ese momento: %lf\n", diff_energy);
 		//printf("Eads de ese momento: %lf\n", Eads);
 		//print_array(tmpmatrix,3);
@@ -62,10 +62,10 @@ void mc_step(int **matrix, int n, double mu, double k0, double T) {
 }
 
 // Monte Carlo simulation
-averages_tuple mc_simulation(int **matrix, int n, double mu, double k0, double T, int niter) {
+averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int niter) {
 	double *averagesstep = (double *)malloc(niter * sizeof(double));
 	for (int l = 0; l < niter; l++) {
-		mc_step(matrix, n, mu, k0, T);
+		mc_n2tries(matrix, n, mu, k0, T);
 		//print_array(matrix,n);
 		int count = 0;
 		for (int i = 0; i < n; i++) {
@@ -160,7 +160,7 @@ void mc_classic() {
 					matrix[i1][i2] = 0;
 				}
 			}
-			averages_tuple results = mc_simulation(matrix,n,mu[i],k0,T[index],niter);
+			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],niter);
 			printf("mc simulation T: %lf, iter: %d, mean value: %lf\n", T[index], i, results.theta);
 			if (i!=mun-1) {
 				fprintf(mc_classic_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
@@ -221,12 +221,12 @@ void mc_hysteresis() {
 		fprintf(mc_hysteresis_file, "\t\t\"averagesmu\": [");
 		int **matrix = initialize_matrix(n);
 		for (int i = 0; i < mun; i++) {
-			averages_tuple results = mc_simulation(matrix,n,mu[i],k0,T[index],niter);
+			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],niter);
 			printf("mc simulation (->) T: %lf, iter: %d, mean value: %lf\n", T[index], i, results.theta);
 			fprintf(mc_hysteresis_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
 		}
 		for (int i = mun-1; 0 <= i; i--) {
-			averages_tuple results = mc_simulation(matrix,n,mu[i],k0,T[index],niter);
+			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],niter);
 			printf("mc simulation (<-) T: %lf, iter: %d, mean value: %lf\n", T[index], i, results.theta);
 			if (i!=0) {
 				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
