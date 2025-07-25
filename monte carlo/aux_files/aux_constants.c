@@ -85,7 +85,7 @@ int configuration_table[9][13][3][3] = {
 };
 
 // Energy table
-double diff_energy_table[9][13] = {
+double diff_energy_table[9][13] = { // E_{H/slab} - E_{slab}
 	{
 		-16.518445641949548 // v0c00c
 	},
@@ -160,3 +160,6 @@ double diff_energy_table[9][13] = {
 
 // Configuration numbers
 int configuration_total[9] = {1,2,6,10,13,11,6,2,1};
+
+// Hydrogen energy
+double E_H = 0.5*(-31.744828518);
