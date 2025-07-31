@@ -107,71 +107,76 @@ data_tuple mc_kawasaki_selection(int **matrix, int n, double k0, double T) {
 // Monte Carlo (Kawasaki)
 void mc_kawasaki() {
 	// Initialization of variables
-	int n = 200; // 100
+	int n = 200; // 200
 	double k0 = 8.617333262e-5;
 	double T[] = {20.,40.,60.,80.,100.};
-	int Tn = 5; // 10
-	int niter = 3000; // 100000 CAREFUL WITH THIS, BIG NUMBERS -> BIG STORAGE ISSUES // CUIDADO CON QUE TE LLENE LA COMPU
-	int eachiter = 100;
-	double cover = 0.7;
+	int Tn = 5; // 5
+	double covers[] = {0.3,0.5,0.7};
+	int ncover = 3; // 3
+	int nstep = 2000; // 3000
+	int eachstep = 100; // PLEASE CAREFUL WITH THIS, CONSIDER THE RATIO OF VARIABLES n, nstep and eachstep BIG NUMBERS -> BIG STORAGE
+	int laststep = 5;
 	// File variable
+	char filename[1024] = "out_files/mc_kawasaki.json";
+	snprintf(filename, sizeof(filename), "out_files/mc_kawasaki (n=%d, steps=%d).json", n, nstep);
 	FILE *mc_kawasaki_file;
-	mc_kawasaki_file = fopen("out_files/mc_kawasaki.json", "w");
+	mc_kawasaki_file = fopen(filename, "w");
 	fprintf(mc_kawasaki_file, "{\n");
-	for (int index = 0; index < Tn; index++) {
-		fprintf(mc_kawasaki_file, "\t\"%d\":{\n", index);
-		fprintf(mc_kawasaki_file, "\t\t\"n\": %d,\n", n);
-		fprintf(mc_kawasaki_file, "\t\t\"k0\": %e,\n", k0);
-		fprintf(mc_kawasaki_file, "\t\t\"Ti\": %f,\n", T[index]);
-		fprintf(mc_kawasaki_file, "\t\t\"niter\": %d,\n", niter);
-		time_t tstart;
-		time(&tstart);
-		fprintf(mc_kawasaki_file, "\t\t\"selections\": {\n");
-		int **matrix = initialize_matrix(n);
-		cover_matrix(matrix,n,cover);
-		for (int iter = 0; iter < niter; iter++) {
-			for (int try = 0; try < n*n; try++) {
-				data_tuple data = mc_kawasaki_selection(matrix,n,k0,T[index]);
-				//printf("mc simulation T: %lf, iter: %d, state: %d ((%d,%d),(%d,%d))\n", T[index], iter, data.res, data.index_i, data.index_j, data.index_k, data.index_l);
-			}
-			double Eads_mean = get_Eads_mean(matrix,n);
-			printf("mc simulation T: %lf, iter: %d, Eads mean: %lf\n", T[index], iter, Eads_mean);
-			if (iter%eachiter==0 || iter==niter-1) { //iter%10==0 || 
-				fprintf(mc_kawasaki_file, "\t\t\t\"%d\": {\n", iter);
-				//fprintf(mc_kawasaki_file, "\t\t\t\t\"indexes_ijkl_postvalues\": [[%d,%d,%d],[%d,%d,%d]],\n", data.index_i, data.index_j, matrix[data.index_i][data.index_j], data.index_k, data.index_l, matrix[data.index_k][data.index_l]);
-				fprintf(mc_kawasaki_file, "\t\t\t\t\"matrix\": [\n");
-				for (int i = 0; i < n; i++) {
-					fprintf(mc_kawasaki_file, "\t\t\t\t\t[");
-					for (int j = 0; j < n; j++) {
-						if (j!=n-1) {
-							fprintf(mc_kawasaki_file, "%d,",matrix[i][j]);
-						} else if (i!=n-1) {
-							fprintf(mc_kawasaki_file, "%d],\n",matrix[i][j]);
-						} else {
-							fprintf(mc_kawasaki_file, "%d]\n",matrix[i][j]);
+	for (int coveri = 0; coveri < ncover; coveri++) {
+		for (int index = 0; index < Tn; index++) {
+			fprintf(mc_kawasaki_file, "\t\"(%f,%f)\":{\n", covers[coveri],T[index]);
+			fprintf(mc_kawasaki_file, "\t\t\"n\": %d,\n", n);
+			fprintf(mc_kawasaki_file, "\t\t\"nstep\": %d,\n", nstep);
+			fprintf(mc_kawasaki_file, "\t\t\"eachstep\": %d,\n", eachstep);
+			fprintf(mc_kawasaki_file, "\t\t\"laststep\": %d,\n", laststep);
+			time_t tstart;
+			time(&tstart);
+			fprintf(mc_kawasaki_file, "\t\t\"selections\": {\n");
+			int **matrix = initialize_matrix(n);
+			cover_matrix(matrix,n,covers[coveri]);
+			for (int step = 0; step < nstep; step++) {
+				for (int try = 0; try < n*n; try++) {
+					data_tuple data = mc_kawasaki_selection(matrix,n,k0,T[index]);
+					//printf("mc simulation T: %lf, step: %d, state: %d ((%d,%d),(%d,%d))\n", T[index], step, data.res, data.index_i, data.index_j, data.index_k, data.index_l);
+				}
+				printf("mc simulation cover: %f T: %lf, step: %d\n", covers[coveri], T[index], step);
+				if (step%eachstep==0 || step==nstep-1 || step>=nstep-laststep) {
+					fprintf(mc_kawasaki_file, "\t\t\t\"%d\": {\n", step);
+					//fprintf(mc_kawasaki_file, "\t\t\t\t\"indexes_ijkl_postvalues\": [[%d,%d,%d],[%d,%d,%d]],\n", data.index_i, data.index_j, matrix[data.index_i][data.index_j], data.index_k, data.index_l, matrix[data.index_k][data.index_l]);
+					fprintf(mc_kawasaki_file, "\t\t\t\t\"matrix\": [\n");
+					for (int i = 0; i < n; i++) {
+						fprintf(mc_kawasaki_file, "\t\t\t\t\t[");
+						for (int j = 0; j < n; j++) {
+							if (j!=n-1) {
+								fprintf(mc_kawasaki_file, "%d,",matrix[i][j]);
+							} else if (i!=n-1) {
+								fprintf(mc_kawasaki_file, "%d],\n",matrix[i][j]);
+							} else {
+								fprintf(mc_kawasaki_file, "%d]\n",matrix[i][j]);
+							}
 						}
 					}
-				}
-				fprintf(mc_kawasaki_file, "\t\t\t\t]\n");
-				if (iter!=niter-1) {
-					fprintf(mc_kawasaki_file, "\t\t\t},\n");
+					fprintf(mc_kawasaki_file, "\t\t\t\t]\n");
+					if (step!=nstep-1) {
+						fprintf(mc_kawasaki_file, "\t\t\t},\n");
+					} else {
+						fprintf(mc_kawasaki_file, "\t\t\t}\n");
+					}
 				} else {
-					fprintf(mc_kawasaki_file, "\t\t\t}\n");
+					//fprintf(mc_kawasaki_file, "\t\t\t\t\"indexes_ijkl_postvalues\": [[%d,%d,%d],[%d,%d,%d]]\n", data.index_i, data.index_j, matrix[data.index_i][data.index_j], data.index_k, data.index_l, matrix[data.index_k][data.index_l]);
 				}
-			} else {
-				//fprintf(mc_kawasaki_file, "\t\t\t\t\"indexes_ijkl_postvalues\": [[%d,%d,%d],[%d,%d,%d]]\n", data.index_i, data.index_j, matrix[data.index_i][data.index_j], data.index_k, data.index_l, matrix[data.index_k][data.index_l]);
 			}
-		}
-		matrix = free_matrix(matrix,n);
-		fprintf(mc_kawasaki_file, "\t\t},\n");
-		time_t tend;
-		time(&tend);
-		printf("T: %lf, time: %lld\n", T[index], tend-tstart);
-		fprintf(mc_kawasaki_file, "\t\t\"time\": %lld\n", tend-tstart);
-		if (index!=Tn-1) {
-			fprintf(mc_kawasaki_file, "\t},\n");
-		} else {
-			fprintf(mc_kawasaki_file, "\t}\n");
+			matrix = free_matrix(matrix,n);
+			fprintf(mc_kawasaki_file, "\t\t},\n");
+			time_t tend;
+			time(&tend);
+			printf("T: %lf, time: %lld\n", T[index], tend-tstart);
+			fprintf(mc_kawasaki_file, "\t\t\"time\": %lld\n", tend-tstart);
+			if (index!=Tn-1 || coveri!=ncover-1) {
+				fprintf(mc_kawasaki_file, "\t},\n");
+			} else {
+				fprintf(mc_kawasaki_file, "\t}\n");
+			}
 		}
 	}
 	fprintf(mc_kawasaki_file, "}\n");

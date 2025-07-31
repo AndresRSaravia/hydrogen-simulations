@@ -21,7 +21,7 @@ typedef struct
 } averages_tuple;
 
 /* ---------------- Monte Carlo functions ---------------- */
-// Monte Carlo step
+// Monte Carlo tries
 void mc_n2tries(int **matrix, int n, double mu, double k0, double T) {
 	int **tmpmatrix = initialize_matrix(3);
 	for (int tmpk = 0; tmpk < n*n; tmpk++) {
@@ -61,10 +61,10 @@ void mc_n2tries(int **matrix, int n, double mu, double k0, double T) {
 	tmpmatrix = free_matrix(tmpmatrix,3);
 }
 
-// Monte Carlo simulation
-averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int niter) {
-	double *averagesstep = (double *)malloc(niter * sizeof(double));
-	for (int l = 0; l < niter; l++) {
+// Monte Carlo steps
+averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int nstep) {
+	double *averagesstep = (double *)malloc(nstep * sizeof(double));
+	for (int l = 0; l < nstep; l++) {
 		mc_n2tries(matrix, n, mu, k0, T);
 		//print_array(matrix,n);
 		int count = 0;
@@ -76,7 +76,7 @@ averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int
 		averagesstep[l] = (double)count / (n * n);
 	}
 	/*printf("promedios para T: %lf, mu: %lf ", T, mu);
-	for (int ita = 0; ita < niter; ita++) {
+	for (int ita = 0; ita < nstep; ita++) {
 		printf("%lf ", averagesstep[ita]);
 	}
 	printf("\n");*/
@@ -84,10 +84,10 @@ averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int
 	averages_tuple results;
 	// Calculate theta
 	double meanmu = 0.0;
-	for (int i = niter/2; i < niter; i++) {
+	for (int i = nstep/2; i < nstep; i++) {
 		meanmu += averagesstep[i];
 	}
-	meanmu = meanmu/(niter/2);
+	meanmu = meanmu/(nstep/2);
 	// Calculate ntotal, nfirst, nsecond
 	double ntotal = 0.0;
 	double nfirst = 0.0;
@@ -118,7 +118,7 @@ averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int
 		results.nsecond = nsecond/nhydrogen;
 	}
 	results.theta = meanmu;
-	//printf("promedio de mui=%lf con (%d) iteraciones: %lf\n",mu,niter/2,results.theta);
+	//printf("promedio de mui=%lf con (%d) pasos: %lf\n",mu,nstep/2,results.theta);
 	//printf("promedio de vecinos: total %lf primeros %lf segundos %lf\n",results.ntotal,results.nfirst,results.nsecond);
 	free(averagesstep);
 	return results;
@@ -137,10 +137,12 @@ void mc_classic() {
 	double k0 = 8.617333262e-5;
 	double T[] = {100.,200.,300.,400.,500.,600.,700.,800.,900.,1000.};
 	int Tn = 10; // 10
-	int niter = 100; // 100
+	int nstep = 100; // 100
 	// File variable
+	char filename[1024] = "out_files/mc_classic.json";
+	snprintf(filename, sizeof(filename), "out_files/mc_classic (n=%d, muinfo=(%f,%f,%d), steps=%d).json", n, mustart, muend, mun, nstep);
 	FILE *mc_classic_file;
-	mc_classic_file = fopen("out_files/mc_classic.json", "w");
+	mc_classic_file = fopen(filename, "w");
 	fprintf(mc_classic_file, "{\n");
 	for (int index = 0; index < Tn; index++) {
 		fprintf(mc_classic_file, "\t\"%d\":{\n", index);
@@ -148,7 +150,7 @@ void mc_classic() {
 		fprintf(mc_classic_file, "\t\t\"muinfo\": [%f,%f,%d],\n", mustart, muend, mun);
 		fprintf(mc_classic_file, "\t\t\"k0\": %e,\n", k0);
 		fprintf(mc_classic_file, "\t\t\"Ti\": %f,\n", T[index]);
-		fprintf(mc_classic_file, "\t\t\"niter\": %d,\n", niter);
+		fprintf(mc_classic_file, "\t\t\"nstep\": %d,\n", nstep);
 		time_t tstart;
 		time(&tstart);
 		fprintf(mc_classic_file, "\t\t\"averagesmu\": [");
@@ -160,8 +162,8 @@ void mc_classic() {
 					matrix[i1][i2] = 0;
 				}
 			}
-			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],niter);
-			printf("mc simulation T: %lf, iter: %d, mean value: %lf\n", T[index], i, results.theta);
+			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
+			printf("mc simulation T: %lf, step: %d, mean value: %lf\n", T[index], i, results.theta);
 			if (i!=mun-1) {
 				fprintf(mc_classic_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
 			}
@@ -204,10 +206,12 @@ void mc_hysteresis() {
 	double k0 = 8.617333262e-5;
 	double T[] = {1.,5.,10.,15.,20.,30.,40.,50.,60.,70.,80.,90.,100.};
 	int Tn = 13; // 10
-	int niter = 10; // 100
+	int nstep = 10; // 100
 	// File variable
+	char filename[1024] = "out_files/mc_hysteresis.json";
+	snprintf(filename, sizeof(filename), "out_files/mc_hysteresis (n=%d, muinfo=(%f,%f,%d), steps=%d).json", n, mustart, muend, mun, nstep);
 	FILE *mc_hysteresis_file;
-	mc_hysteresis_file = fopen("out_files/mc_hysteresis.json", "w");
+	mc_hysteresis_file = fopen(filename, "w");
 	fprintf(mc_hysteresis_file, "{\n");
 	for (int index = 0; index < Tn; index++) {
 		fprintf(mc_hysteresis_file, "\t\"%d\":{\n", index);
@@ -215,19 +219,19 @@ void mc_hysteresis() {
 		fprintf(mc_hysteresis_file, "\t\t\"muinfo\": [%f,%f,%d],\n", mustart, muend, mun);
 		fprintf(mc_hysteresis_file, "\t\t\"k0\": %e,\n", k0);
 		fprintf(mc_hysteresis_file, "\t\t\"Ti\": %f,\n", T[index]);
-		fprintf(mc_hysteresis_file, "\t\t\"niter\": %d,\n", niter);
+		fprintf(mc_hysteresis_file, "\t\t\"nstep\": %d,\n", nstep);
 		time_t tstart;
 		time(&tstart);
 		fprintf(mc_hysteresis_file, "\t\t\"averagesmu\": [");
 		int **matrix = initialize_matrix(n);
 		for (int i = 0; i < mun; i++) {
-			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],niter);
-			printf("mc simulation (->) T: %lf, iter: %d, mean value: %lf\n", T[index], i, results.theta);
+			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
+			printf("mc simulation (->) T: %lf, step: %d, mean value: %lf\n", T[index], i, results.theta);
 			fprintf(mc_hysteresis_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
 		}
 		for (int i = mun-1; 0 <= i; i--) {
-			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],niter);
-			printf("mc simulation (<-) T: %lf, iter: %d, mean value: %lf\n", T[index], i, results.theta);
+			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
+			printf("mc simulation (<-) T: %lf, step: %d, mean value: %lf\n", T[index], i, results.theta);
 			if (i!=0) {
 				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
 			}
