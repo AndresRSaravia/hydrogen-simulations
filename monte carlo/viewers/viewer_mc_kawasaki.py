@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import ListedColormap
 import json
 
 def auxf(index,n,d):
@@ -63,67 +62,135 @@ def get_cluster_number(clusters,inf=0,sup=float('inf')):
 	nclusters = 0
 	for key in clusters.keys():
 		tmp = len(clusters[key])
-		if inf < tmp and tmp < sup:
+		if inf <= tmp and tmp <= sup:
 			nclusters += 1
 	return nclusters
 
-def general_plot(x,y,title):
-	plt.plot(x,y,marker = 'o')
+def general_plot(x,y,labels,title):
+	xlabel,ylabel = labels
+	plt.xlabel(xlabel)
+	plt.ylabel(ylabel)
+	plt.title(title)
+	plt.plot(x,y,marker='o')
+
+def general_cluster_plot(steplist,clusterlists,title):
+	for inf in clusterlists.keys():
+		general_plot(steplist[1:],clusterlists[inf][1:],['Steps','Islands'],title)
+	plt.legend([f"≥{elem}" for elem in clusterlists.keys()])
+	plt.show()
+
+def general_coverTi_plot(Alist,ilist,xlabel,title):
+	infs = ilist[0].keys()
+	for inf in infs:
+		ydata = []
+		for index in range(len(Alist)):
+			ydata.append(ilist[index][inf])
+		general_plot(Alist,ydata,[xlabel,'Mean islands'],title)
+	plt.legend([f"≥{inf}" for inf in infs])
+	plt.show()
 
 def general_matrix_plot(matrix,clusters,title):
 	tmpmatrix = matrix
 	for kcluster in clusters.keys():
 		for indexes in clusters[kcluster]:
 			(i,j) = indexes
-			tmpmatrix[i][j] = kcluster+100
+			tmpmatrix[i][j] = kcluster+1000
 	plt.matshow(tmpmatrix, cmap='rainbow')
 	plt.title(title)
 	plt.show()
 
 def histogram_cluster_plot(clusters,title,inf=0):
-	plt.hist([len(clusters[key]) for key in clusters.keys() if len(clusters[key]) > inf])
-	plt.title(title)
+	plt.xlabel('Island size')
+	plt.ylabel('Count')
+	plt.hist([len(clusters[key]) for key in clusters.keys() if len(clusters[key]) >= inf])
+	plt.title(title+f" (≥{inf})")
 	plt.show()
 
-def view_kawasaki(json_name):
+def process_json(json_name,rdata=[1,6,1]):
+	# opening file
 	with open(json_name) as file:
 		json_contents = json.load(file)
 	print(sum([json_contents[key]['time'] for key in json_contents.keys()]))
-	print(json_contents.keys())
+	res = {}
+	Clist = {}
+	Tlist = {}
+	# iterating over the dictionary
 	for key in json_contents.keys():
+		res[key] = {}
+		# key variables to consider
+		listkey = key.replace("(", "").replace(")", "").split(",")
+		[cover,Ti] = list(map(float, listkey))
 		n = json_contents[key]["n"]
-		Ti = json_contents[key]["Ti"]
-		niter = json_contents[key]["niter"]
+		laststep = json_contents[key]["laststep"]
 		selections = json_contents[key]['selections']
-		iterlist = []
-		clusterlists = {elem:[] for elem in range(5,8,1)} #range(100,201,50)
-		for iteration in selections.keys():
-			selected = selections[iteration]
-			if ("matrix" in selected):
-				matrix = selected["matrix"]
-				cover = np.mean(matrix)
-				clusters = get_clusters(matrix,n,0)
-				title = f"n={n} T={Ti} cover={cover} iter={int(iteration):04d}/{niter-1}"
-				histogram_cluster_plot(clusters,title,inf=20)
-				#general_matrix_plot(matrix,clusters,title)
-				iterlist.append(int(iteration))
-				for inf in clusterlists.keys():
-					clusterlists[inf].append(get_cluster_number(clusters,inf=inf))
-				print(Ti,iteration,get_cluster_number(clusters),get_cluster_number(clusters,inf=1),get_cluster_number(clusters,inf=2))
-		if False:
-			title = f"n={n} T={Ti} cover={cover}"
-			plt.title(title)
+		steplist = []
+		rlow,rhigh,rstep = rdata
+		clusterlists = {inf:[] for inf in range(rlow,rhigh,rstep)}
+		islandmean = {inf:0 for inf in range(rlow,rhigh,rstep)}
+		# iterating over the steps
+		for step in selections.keys():
+			# getting the clusters
+			matrix = selections[step]["matrix"]
+			clusters = get_clusters(matrix,n,0)
+			steplist.append(int(step))
 			for inf in clusterlists.keys():
-				print(1)
-				general_plot(iterlist[1:],clusterlists[inf][1:],title)
-			plt.legend([f">{elem}" for elem in clusterlists.keys()])
-			plt.show()
+				clusterlists[inf].append(get_cluster_number(clusters,inf=inf))
+		for inf in clusterlists.keys():
+			islandmean[inf] = np.mean(clusterlists[inf][-laststep:])
+		res[key]["steplist"] = steplist
+		res[key]["clusterlists"] = clusterlists
+		if cover not in Clist.keys():
+			Clist[cover] = {}
+		Clist[cover][Ti] = islandmean
+		if Ti not in Tlist.keys():
+			Tlist[Ti] = {}
+		Tlist[Ti][cover] = islandmean
+	print(Clist)
+	print(Tlist)
+	return res,Clist,Tlist
+
+def view_kawasaki(json_name,res,Clist,Tlist,mode='c'):
+	# opening file
+	with open(json_name) as file:
+		json_contents = json.load(file)
+	print(sum([json_contents[key]['time'] for key in json_contents.keys()]))
+	for key in json_contents.keys():
+		listkey = key.replace("(", "").replace(")", "").split(",")
+		[cover,Ti] = list(map(float, listkey))
+		n = json_contents[key]["n"]
+		nstep = json_contents[key]["nstep"]
+		selections = json_contents[key]['selections']
+		steplist = res[key]["steplist"]
+		clusterlists = res[key]["clusterlists"]
+		for step in selections.keys():
+			matrix = selections[step]["matrix"]
+			clusters = get_clusters(matrix,n)
+			title = f"n={n} T={Ti} cover={cover} step={int(step):04d}/{nstep-1}"
+			if mode=='h':
+				histogram_cluster_plot(clusters,title,inf=20)
+			if mode=='m':
+				general_matrix_plot(matrix,clusters,title)
+		if mode=='c':
+			title = f"n={n} T={Ti} cover={cover}"
+			general_cluster_plot(steplist,clusterlists,title)
+	if mode=='a':
+		for C in Clist.keys():
+			Ts = Clist[C].keys()
+			ilist = list(Clist[C].values())
+			title = f"n={n} cover={C}"
+			general_coverTi_plot(Ts,ilist,"cover",title)
+		for Ti in Tlist.keys():
+			Cs = Tlist[Ti].keys()
+			ilist = list(Tlist[Ti].values())
+			title = f"n={n} T={Ti}"
+			general_coverTi_plot(Cs,ilist,"T",title)
 
 filenames = [
-	"../out_files/mc_kawasaki (200x200, 0.3, 3000 iter).json",
-	"../out_files/mc_kawasaki (200x200, 0.5, 3000 iter).json",
-	"../out_files/mc_kawasaki (200x200, 0.7, 3000 iter).json"
+	"../out_files/mc_kawasaki (n=200, steps=3000).json"
 ]
 
+rdata = [2,7,1] # [1,6,1] [6,9,1] range(100,201,50)
+rlow,rhigh,rstep = rdata
 for filename in filenames:
-	view_kawasaki(filename)
+	res,Clist,Tlist = process_json(filename,rdata)
+	view_kawasaki(filename,res,Clist,Tlist,mode='a')
