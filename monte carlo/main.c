@@ -17,25 +17,25 @@
 int main() {
 	srand(time(NULL));
 	for (int i = 0; i < 1000; i++) {udiscrete(0,5);}
-	int mode = 2;
+	int mode = 1;
     switch (mode) {
     case 0:
 		// Gran canónico
-		printf("Modo Clásico\n");
+		printf("Classic Mode\n");
         mc_classic();
         break;
     case 1:
 		// Gran canónico
-        printf("Modo Histéresis\n");
+        printf("Hysteresis Mode\n");
 		mc_hysteresis();
         break;
     case 2:
 		// Canónico
-        printf("Modo Kawasaki\n");
+        printf("Kawasaki Mode\n");
 		mc_kawasaki();
         break;
     default:
-        printf("Modo inválido\n");
+        printf("Invalid Mode\n");
     }
 	printf("Fin.\n"); 
 	return 0;

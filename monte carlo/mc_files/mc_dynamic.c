@@ -145,11 +145,9 @@ void mc_classic() {
 	mc_classic_file = fopen(filename, "w");
 	fprintf(mc_classic_file, "{\n");
 	for (int index = 0; index < Tn; index++) {
-		fprintf(mc_classic_file, "\t\"%d\":{\n", index);
+		fprintf(mc_classic_file, "\t\"%f\":{\n", T[index]);
 		fprintf(mc_classic_file, "\t\t\"n\": %d,\n", n);
 		fprintf(mc_classic_file, "\t\t\"muinfo\": [%f,%f,%d],\n", mustart, muend, mun);
-		fprintf(mc_classic_file, "\t\t\"k0\": %e,\n", k0);
-		fprintf(mc_classic_file, "\t\t\"Ti\": %f,\n", T[index]);
 		fprintf(mc_classic_file, "\t\t\"nstep\": %d,\n", nstep);
 		time_t tstart;
 		time(&tstart);
@@ -163,7 +161,7 @@ void mc_classic() {
 				}
 			}
 			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
-			printf("mc simulation T: %lf, step: %d, mean value: %lf\n", T[index], i, results.theta);
+			printf("mc simulation T: %lf, mu: %d, mean value: %lf\n", T[index], i, results.theta);
 			if (i!=mun-1) {
 				fprintf(mc_classic_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
 			}
@@ -195,8 +193,8 @@ void mc_classic() {
 
 void mc_hysteresis() {
 	// Initialization of variables
-	int n = 100; // 300
-	int mun = 400; // 200
+	int n = 200; // 200
+	int mun = 400; // 400
 	double mustart = -0.69, muend = -0.655; // mustart = -1.0, muend = -0.25
 	double mustep = (muend-mustart)/(mun-1);
 	double mu[mun];
@@ -205,8 +203,8 @@ void mc_hysteresis() {
 	}
 	double k0 = 8.617333262e-5;
 	double T[] = {1.,5.,10.,15.,20.,30.,40.,50.,60.,70.,80.,90.,100.};
-	int Tn = 13; // 10
-	int nstep = 10; // 100
+	int Tn = 13; // 13
+	int nstep = 100; // 100
 	// File variable
 	char filename[1024] = "out_files/mc_hysteresis.json";
 	snprintf(filename, sizeof(filename), "out_files/mc_hysteresis (n=%d, muinfo=(%f,%f,%d), steps=%d).json", n, mustart, muend, mun, nstep);
@@ -214,11 +212,9 @@ void mc_hysteresis() {
 	mc_hysteresis_file = fopen(filename, "w");
 	fprintf(mc_hysteresis_file, "{\n");
 	for (int index = 0; index < Tn; index++) {
-		fprintf(mc_hysteresis_file, "\t\"%d\":{\n", index);
+		fprintf(mc_hysteresis_file, "\t\"%f\":{\n", T[index]);
 		fprintf(mc_hysteresis_file, "\t\t\"n\": %d,\n", n);
 		fprintf(mc_hysteresis_file, "\t\t\"muinfo\": [%f,%f,%d],\n", mustart, muend, mun);
-		fprintf(mc_hysteresis_file, "\t\t\"k0\": %e,\n", k0);
-		fprintf(mc_hysteresis_file, "\t\t\"Ti\": %f,\n", T[index]);
 		fprintf(mc_hysteresis_file, "\t\t\"nstep\": %d,\n", nstep);
 		time_t tstart;
 		time(&tstart);
@@ -226,12 +222,12 @@ void mc_hysteresis() {
 		int **matrix = initialize_matrix(n);
 		for (int i = 0; i < mun; i++) {
 			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
-			printf("mc simulation (->) T: %lf, step: %d, mean value: %lf\n", T[index], i, results.theta);
+			printf("mc simulation (->) T: %lf, mu: %f, mean value: %lf\n", T[index], mu[i], results.theta);
 			fprintf(mc_hysteresis_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
 		}
 		for (int i = mun-1; 0 <= i; i--) {
 			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
-			printf("mc simulation (<-) T: %lf, step: %d, mean value: %lf\n", T[index], i, results.theta);
+			printf("mc simulation (<-) T: %lf, mu: %f, mean value: %lf\n", T[index], mu[i], results.theta);
 			if (i!=0) {
 				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
 			}
