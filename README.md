@@ -11,7 +11,7 @@ There are three main folders:
     - `aux_files`: auxiliary files for constants, distributions for the Monte Carlo simulations and matrix operations
     - `mc_files`: files detailing the different Monte Carlo methods, specifically canonical and grand canonical
 
-    `out_files` folder has all the `.json` files that main.c generates, `viewers` one has Python files that visualize the results and statistics of the simulations, `png_files` folder has all the `.png` files that the viewers generate.
+    `out_files` folder has all the `.json` files that main.c generates, `viewers` has Python files that visualize the results and statistics of the simulations, and `png_files` has all the `.png` files that the viewers generate.
 
 ### License
 
