@@ -126,7 +126,7 @@ averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int
 
 void mc_classic() {
 	// Initialization of variables
-	int n = 300; // 300
+	int n = 200; // 200
 	int mun = 200; // 200
 	double mustart = -1.0, muend = -0.25; // mustart = -1.0, muend = -0.25
 	double mustep = (muend-mustart)/(mun-1);
