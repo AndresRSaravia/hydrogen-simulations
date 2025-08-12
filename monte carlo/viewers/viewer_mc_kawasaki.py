@@ -78,9 +78,9 @@ def general_save(title):
 
 def general_cluster_plot(steplist,clusterlists,title):
 	for inf in clusterlists.keys():
-		general_plot(steplist[1:],clusterlists[inf][1:],["steps","#island"],title)
+		general_plot(steplist[1:],clusterlists[inf][1:],["pasos","número de clústeres"],title)
 	plt.legend([f"≥{elem}" for elem in clusterlists.keys()])
-	#general_save(f"mode=c {title}")
+	general_save(f"mode=c {title}")
 	plt.show()
 
 def general_coverTi_plot(Alist,ilist,xlabel,title):
@@ -89,9 +89,9 @@ def general_coverTi_plot(Alist,ilist,xlabel,title):
 		ydata = []
 		for index in range(len(Alist)):
 			ydata.append(ilist[index][inf])
-		general_plot(Alist,ydata,[xlabel,"#islands (mean)"],title)
+		general_plot(Alist,ydata,[xlabel,"número de clústeres promedio"],title)
 	plt.legend([f"≥{inf}" for inf in infs])
-	#general_save(f"mode=a {title}")
+	general_save(f"mode=a {title}")
 	plt.show()
 
 def general_matrix_plot(matrix,clusters,title):
@@ -102,15 +102,15 @@ def general_matrix_plot(matrix,clusters,title):
 			tmpmatrix[i][j] = kcluster+1000
 	plt.matshow(tmpmatrix, cmap="rainbow")
 	plt.title(title)
-	#general_save("mode=m {title}")
+	general_save(f"mode=m {title}")
 	plt.show()
 
 def histogram_cluster_plot(clusters,title,inf=0):
-	plt.xlabel("island size")
-	plt.ylabel("count")
+	plt.xlabel("tamaño de clústeres")
+	plt.ylabel("número de clústeres")
 	plt.hist([len(clusters[key]) for key in clusters.keys() if len(clusters[key]) >= inf])
 	plt.title(f"{title} (≥{inf})")
-	#general_save(f"mode=h {title} (≥{inf})")
+	general_save(f"mode=h {title} (≥{inf})")
 	plt.show()
 
 def process_json(json_name,rdata=[1,6,1]):
@@ -173,26 +173,26 @@ def view_kawasaki(json_name,res,Clist,Tlist,mode="c"):
 			matrix = selections[step]["matrix"]
 			clusters = get_clusters(matrix,n)
 			if mode=="h" and int(step)==nstep-1:
-				title = f"n={n} T={Ti}°K cover={cover} step={int(step):04d}"
+				title = f"n={n} T={Ti} K cubrim.={cover} paso={int(step):04d}"
 				histogram_cluster_plot(clusters,title,inf=2)
 				general_matrix_plot(matrix,clusters,title)
 			if mode=="m":
-				title = f"n={n} cover={cover} T={Ti}°K step={int(step):04d}"
+				title = f"n={n} cubrim.={cover} T={Ti} K paso={int(step):04d}"
 				general_matrix_plot(matrix,clusters,title)
 		if mode=="c":
-			title = f"n={n} T={Ti}°K cover={cover}"
+			title = f"n={n} T={Ti} K cubrimiento={cover}"
 			general_cluster_plot(steplist,clusterlists,title)
 	if mode=="a":
 		for C in Clist.keys():
 			Ts = Clist[C].keys()
 			ilist = list(Clist[C].values())
-			title = f"n={n} cover={C}"
-			general_coverTi_plot(Ts,ilist,"T (°K)",title)
+			title = f"n={n} cubrimiento={C}"
+			general_coverTi_plot(Ts,ilist,"T (K)",title)
 		for Ti in Tlist.keys():
 			Cs = Tlist[Ti].keys()
 			ilist = list(Tlist[Ti].values())
-			title = f"n={n} T={Ti}°K"
-			general_coverTi_plot(Cs,ilist,"cover",title)
+			title = f"n={n} T={Ti} K"
+			general_coverTi_plot(Cs,ilist,"cubrimiento",title)
 
 filenames = [
 	"../out_files/mc_kawasaki (n=200, steps=3000).json"
@@ -202,4 +202,5 @@ rdata = [2,7,1] # [1,6,1] [6,9,1] range(100,201,50)
 rlow,rhigh,rstep = rdata
 for filename in filenames:
 	res,Clist,Tlist = process_json(filename,rdata)
-	view_kawasaki(filename,res,Clist,Tlist,mode="a")
+	for mode in ["a"]: # "h","m","c","a"
+		view_kawasaki(filename,res,Clist,Tlist,mode=mode)

@@ -8,10 +8,10 @@ def view_hysteresis(json_name):
 	print(sum([json_contents[key]["time"] for key in json_contents.keys()]))
 	print(json_contents.keys())
 	modes = {
-		0:"θ mean",
-		#1:"Vecinos total promedio",
-		#2:"Primeros vecinos promedio",
-		#3:"Segundos vecinos promedio"
+		0:"cubrimiento promedio",
+		#1:"vecinos total promedio",
+		#2:"primeros vecinos promedio",
+		#3:"segundos vecinos promedio"
 	}
 	for mode in modes.keys():
 		T = []
@@ -27,11 +27,11 @@ def view_hysteresis(json_name):
 			plt.plot(np.linspace(mubot,mutop,mun)[istart:iend],averagesmu1[istart:iend],"--o")
 			plt.plot(np.linspace(mubot,mutop,mun)[istart:iend],averagesmu2[istart:iend],"--o")
 			T.append(float(Ti))
-			plt.legend(["(->)","(<-)"])
-			title = f"{modes[mode]} T={str(float(Ti)}"
+			plt.legend(["ida (->)","vuelta (<-)"])
+			title = f"{modes[mode]} T={str(float(Ti))} K"
 			plt.title(title)
-			plt.xlabel("μ values")
-			plt.ylabel("θ means")
+			plt.xlabel("valores μ")
+			plt.ylabel(f"{modes[mode]}")
 			plt.savefig(f"../png_files/{title}.png")
 			plt.show()
 

@@ -10,10 +10,10 @@ def view_classic(json_name,dropkeys):
 		del json_contents[key]
 	print(json_contents.keys())
 	modes = {
-		0:"θ mean",
-		1:"total neighbor mean",
-		2:"first neighbor mean",
-		3:"second neighbor mean"
+		0:"cubrimiento promedio",
+		1:"vecinos total promedio",
+		2:"primeros vecinos promedio",
+		3:"segundos vecinos promedio"
 	}
 	for mode in modes.keys():
 		T = []
@@ -25,11 +25,11 @@ def view_classic(json_name,dropkeys):
 			iend = len(averagesmu)
 			plt.plot(np.linspace(mubot,mutop,mun)[istart:iend],averagesmu[istart:iend],"--o")
 			T.append(float(Ti))
-			title = f"{modes[mode]} {'filtered' if dropkeys != [] else 'unfiltered'}"
+			title = f"{modes[mode]} {'(filtrado)' if dropkeys != [] else '(completo)'}"
 			plt.title(title)
-			plt.xlabel("μ values")
-			plt.ylabel("θ means")
-		plt.legend(T)
+			plt.xlabel("valores μ")
+			plt.ylabel(f"{modes[mode]}")
+		plt.legend([f"{Ti} K" for Ti in T])
 		plt.savefig(f"../png_files/{title}.png")
 		plt.show()
 
@@ -41,3 +41,4 @@ dropkeys = ["400.000000","500.000000","700.000000","800.000000","900.000000","10
 
 for filename in filenames:
 	view_classic(filename,dropkeys)
+	view_classic(filename,[])
