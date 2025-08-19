@@ -80,7 +80,7 @@ def general_cluster_plot(steplist,clusterlists,title):
 	for inf in clusterlists.keys():
 		general_plot(steplist[1:],clusterlists[inf][1:],["pasos","número de clústeres"],title)
 	plt.legend([f"≥{elem}" for elem in clusterlists.keys()])
-	general_save(f"mode=c {title}")
+	#general_save(f"mode=c {title}")
 	plt.show()
 
 def general_coverTi_plot(Alist,ilist,xlabel,title):
@@ -91,7 +91,7 @@ def general_coverTi_plot(Alist,ilist,xlabel,title):
 			ydata.append(ilist[index][inf])
 		general_plot(Alist,ydata,[xlabel,"número de clústeres promedio"],title)
 	plt.legend([f"≥{inf}" for inf in infs])
-	general_save(f"mode=a {title}")
+	#general_save(f"mode=a {title}")
 	plt.show()
 
 def general_matrix_plot(matrix,clusters,title):
@@ -102,15 +102,17 @@ def general_matrix_plot(matrix,clusters,title):
 			tmpmatrix[i][j] = kcluster+1000
 	plt.matshow(tmpmatrix, cmap="rainbow")
 	plt.title(title)
-	general_save(f"mode=m {title}")
+	#general_save(f"mode=m {title}")
 	plt.show()
 
 def histogram_cluster_plot(clusters,title,inf=0):
 	plt.xlabel("tamaño de clústeres")
 	plt.ylabel("número de clústeres")
-	plt.hist([len(clusters[key]) for key in clusters.keys() if len(clusters[key]) >= inf])
-	plt.title(f"{title} (≥{inf})")
-	general_save(f"mode=h {title} (≥{inf})")
+	rlow,rhigh,rstep = [2,7,1]
+	for inft in range(rlow,rhigh,rstep):
+		plt.hist([len(clusters[key]) for key in clusters.keys() if len(clusters[key]) >= inft], bins=25)
+	plt.title(f"{title} (≥{rlow}-{rhigh})")
+	#general_save(f"mode=h {title} (≥{inf})")
 	plt.show()
 
 def process_json(json_name,rdata=[1,6,1]):
@@ -202,5 +204,5 @@ rdata = [2,7,1] # [1,6,1] [6,9,1] range(100,201,50)
 rlow,rhigh,rstep = rdata
 for filename in filenames:
 	res,Clist,Tlist = process_json(filename,rdata)
-	for mode in ["a"]: # "h","m","c","a"
+	for mode in ["h"]: # "h","m","c","a"
 		view_kawasaki(filename,res,Clist,Tlist,mode=mode)
