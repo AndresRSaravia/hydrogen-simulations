@@ -78,8 +78,12 @@ poss_pos_better = {}
 for key in poss_pos:
 	for index in range(len(poss_pos[key])):
 		arr = poss_pos[key][index]
-		title = "v"+str(key)+"c"+f'{index:02}c'
+		title = f"v{key}c{index:02}c"
 		poss_pos_better[title] = {"array": poss_pos[key][index]}
+		print(title)
+		for i in range(len(arr)):
+			print(f"{arr[i][0]} & {arr[i][1]} & {arr[i][2]} \\\\")
+		#print(poss_pos[key][index])
 
 outvalues = [
 	[("v0c00c",-6436.94089778),("v0c00s",-6435.72681369)],
@@ -153,13 +157,34 @@ for item in outvalues:
 	poss_pos_better[outname]["Eads"] = Eads
 print(poss_pos_better)
 
+
+text = "\\begin{center}\n\\begin{tabular}{|c|c|c|c|c|c|}\n\hline\n"
+text += "nombre & $E_{H/slab}$ (eV) & $E_{slab}$ (eV) & $E_{H/slab} - E_{slab}$ (eV) & $E_{ads}$ (eV) & J \\\\ \hline\n"
+p = 4
+for item in outvalues:
+	outname = item[0][0]
+	outvalc = item[0][1]*13.605684958731
+	outvals = item[1][1]*13.605684958731
+	outdiff = (outvalc-outvals)
+	Eads = (outdiff - 0.5*(-31.744828518))
+	if int(outname[1])!=0:
+		J = (Eads-poss_pos_better["v0c00c"]["Eads"])/int(outname[1])
+		text += f"\\texttt{{{outname[:len(outname) - 1]}}} & ${round(outvalc,p)}$ & ${round(outvals,p)}$ & ${round(outdiff,p)}$ & ${round(Eads,p)}$ & ${round(J,p)}$"
+	else:
+		J = "-"
+		text += f"\\texttt{{{outname[:len(outname) - 1]}}} & ${round(outvalc,p)}$ & ${round(outvals,p)}$ & ${round(outdiff,p)}$ & ${round(Eads,p)}$ & ${J}$"
+	text += " \\\\ \hline\n"
+text += "\end{tabular}\n\end{center}\n"
+print(text)
+
+
 Eadslist = []
 text = "\\begin{center}\n\\begin{tabular}{|c|c|}\n\hline\n"
 text += "key & Eads \\\\ \hline\n"
 for key in poss_pos_better:
 	if "Eads" in poss_pos_better[key].keys():
 		Eads = poss_pos_better[key]["Eads"]
-		text += str(key)+" & "+str(Eads)+" \\\\ \hline\n"
+		text += f"{key} & {Eads} \\\\ \hline\n"
 		Eadslist.append(Eads)
 text += "\end{tabular}\n\end{center}\n"
 print(text)
@@ -172,7 +197,7 @@ for key in poss_pos_better:
 	if(key!="v0c00c"):
 		if "Eads" in poss_pos_better[key].keys():
 			J = (poss_pos_better[key]["Eads"]-poss_pos_better["v0c00c"]["Eads"])/int(key[1])
-			text += str(key)+" & "+str(J)+" \\\\ \hline\n"
+			text += f"{key} & {J} \\\\ \hline\n"
 			Jlist.append(J)
 text += "\end{tabular}\n\end{center}\n"
 print(text)
