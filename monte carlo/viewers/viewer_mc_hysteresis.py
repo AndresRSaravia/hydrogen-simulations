@@ -35,9 +35,17 @@ def view_hysteresis(json_name):
 			plt.savefig(f"../png_files/{title}.png")
 			plt.show()
 
+def time(json_name):
+	# opening file
+	with open(json_name) as file:
+		json_contents = json.load(file)
+	for key in json_contents.keys():
+		print(key,json_contents[key]["time"])
+
 filenames = [
 	"../out_files/mc_hysteresis (n=200, muinfo=(-0.690000,-0.655000,400), steps=100).json"
 ]
 
 for filename in filenames:
-	view_hysteresis(filename)
+	time(filename)
+	#view_hysteresis(filename)

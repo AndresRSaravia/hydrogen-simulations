@@ -196,6 +196,13 @@ def view_kawasaki(json_name,res,Clist,Tlist,mode="c"):
 			title = f"n={n} T={Ti} K"
 			general_coverTi_plot(Cs,ilist,"cubrimiento",title)
 
+def time(json_name):
+	# opening file
+	with open(json_name) as file:
+		json_contents = json.load(file)
+	for key in json_contents.keys():
+		print(key,json_contents[key]["time"])
+
 filenames = [
 	"../out_files/mc_kawasaki (n=200, steps=3000).json"
 ]
@@ -203,6 +210,7 @@ filenames = [
 rdata = [2,7,1] # [1,6,1] [6,9,1] range(100,201,50)
 rlow,rhigh,rstep = rdata
 for filename in filenames:
-	res,Clist,Tlist = process_json(filename,rdata)
-	for mode in ["h"]: # "h","m","c","a"
-		view_kawasaki(filename,res,Clist,Tlist,mode=mode)
+	time(filename)
+	#res,Clist,Tlist = process_json(filename,rdata)
+	#for mode in ["h"]: # "h","m","c","a"
+		#view_kawasaki(filename,res,Clist,Tlist,mode=mode)

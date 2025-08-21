@@ -33,6 +33,13 @@ def view_classic(json_name,dropkeys,code=''):
 		plt.savefig(f"../png_files/{title}.png")
 		plt.show()
 
+def time(json_name):
+	# opening file
+	with open(json_name) as file:
+		json_contents = json.load(file)
+	for key in json_contents.keys():
+		print(key,json_contents[key]["time"])
+
 filenames = [
 	"../out_files/mc_classic (n=200, muinfo=(-1.000000,-0.250000,200), steps=100).json"
 ]
@@ -41,7 +48,9 @@ dropkeys1 = ["500.000000","600.000000","700.000000","800.000000","900.000000","1
 dropkeys2 = ["100.000000","200.000000","300.000000","400.000000","900.000000","1000.000000"]
 dropkeys3 = ["100.000000","200.000000","300.000000","400.000000","500.000000","600.000000","700.000000","800.000000"]
 
+
 for filename in filenames:
-	view_classic(filename,dropkeys1,code="1")
-	view_classic(filename,dropkeys2,code="2")
-	view_classic(filename,dropkeys3,code="3")
+	time(filename)
+	#view_classic(filename,dropkeys1,code="1")
+	#view_classic(filename,dropkeys2,code="2")
+	#view_classic(filename,dropkeys3,code="3")
