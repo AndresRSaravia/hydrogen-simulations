@@ -150,7 +150,7 @@ def view_kawasaki(json_name,res,Clist,Tlist,folder="test",mode="c"):
 		if mode=="c":
 			title = f"n={n} T={Ti} K cubrimiento={cover}"
 			general_cluster_plot(steplist,clusterlists,title)
-			filename = f"n{n}T{Ti}c{cover}s{int(step):04d}"
+			filename = f"n{n}T{Ti}c{cover}"
 			general_save(f"{folder}/kawasaki/{mode}",filename)
 			plt.show()
 	if mode=="a":
