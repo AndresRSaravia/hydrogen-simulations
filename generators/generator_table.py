@@ -198,9 +198,12 @@ for key in poss_pos_better:
 		if "Eads" in poss_pos_better[key].keys():
 			J = (poss_pos_better[key]["Eads"]-poss_pos_better["v0c00c"]["Eads"])/int(key[1])
 			text += f"{key} & {J} \\\\ \hline\n"
-			Jlist.append(J)
+			array = poss_pos_better[key]['array']
+			if(array[0][0]+array[0][2]+array[2][0]+array[2][2]==0):
+				Jlist.append(J)
 text += "\end{tabular}\n\end{center}\n"
 print(text)
 
 kb = 8.617333262e-5
+print((np.array(Jlist)).mean())
 print(-2*(np.array(Jlist)).mean()/(kb*np.log(1+np.sqrt(2))))

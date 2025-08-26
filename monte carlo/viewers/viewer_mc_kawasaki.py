@@ -1,87 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import json
-
-def auxf(index,n,d):
-	return (index+d)%n
-
-def get_clusters(matrix,n,diagflag=0):
-	hydrogens = [(i,j) for i in range(n) for j in range(n) if (matrix[i][j]==1)]
-	queued = np.zeros((n,n))
-	clusters = {}
-	ncluster = 0
-	while (hydrogens != []):
-		first = hydrogens.pop(0)
-		queue = [first]
-		i = first[0]
-		j = first[1]
-		queued[i][j] = 1
-		marked = []
-		while (queue != []):
-			elem = queue.pop(0)
-			#print(elem)
-			i = elem[0]
-			j = elem[1]
-			ip1 = auxf(i,n,+1)
-			im1 = auxf(i,n,-1)
-			jp1 = auxf(j,n,+1)
-			jm1 = auxf(j,n,-1)
-			if (matrix[ip1][j]==1 and queued[ip1][j]==0):
-				queue.append((ip1,j))
-				queued[ip1][j] = 1
-			if (matrix[im1][j]==1 and queued[im1][j]==0):
-				queue.append((im1,j))
-				queued[im1][j] = 1
-			if (matrix[i][jp1]==1 and queued[i][jp1]==0):
-				queue.append((i,jp1))
-				queued[i][jp1] = 1
-			if (matrix[i][jm1]==1 and queued[i][jm1]==0):
-				queue.append((i,jm1))
-				queued[i][jm1] = 1
-			if (diagflag!=0):
-				if (matrix[ip1][jp1]==1 and queued[ip1][jp1]==0):
-					queue.append((ip1,jp1))
-					queued[ip1][jp1] = 1
-				if (matrix[im1][jp1]==1 and queued[im1][jp1]==0):
-					queue.append((im1,jp1))
-					queued[im1][jp1] = 1
-				if (matrix[ip1][jm1]==1 and queued[ip1][jm1]==0):
-					queue.append((ip1,jm1))
-					queued[ip1][jm1] = 1
-				if (matrix[im1][jm1]==1 and queued[im1][jm1]==0):
-					queue.append((im1,jm1))
-					queued[im1][jm1] = 1
-			marked.append(elem)
-		clusters[ncluster] = marked
-		ncluster += 1
-		while (hydrogens !=[] and queued[hydrogens[0][0],hydrogens[0][1]] == 1):
-			hydrogens.pop(0)
-	return clusters
-
-def get_cluster_number(clusters,inf=0,sup=float("inf")):
-	nclusters = 0
-	for key in clusters.keys():
-		tmp = len(clusters[key])
-		if inf <= tmp and tmp <= sup:
-			nclusters += 1
-	return nclusters
-
-def general_plot(x,y,labels,title):
-	xlabel,ylabel = labels
-	plt.xlabel(xlabel)
-	plt.ylabel(ylabel)
-	plt.title(title)
-	plt.plot(x,y,marker="o")
-
-def general_save(title):
-	plt.savefig(f"../png_files/{title}.png")
+from plot_handlers import general_plot,general_save
+from cluster_handlers import get_clusters,get_cluster_number
 
 def general_cluster_plot(steplist,clusterlists,title):
 	for inf in clusterlists.keys():
 		general_plot(steplist[1:],clusterlists[inf][1:],["pasos","número de clústeres"],title)
 	plt.legend([f"≥{elem}" for elem in clusterlists.keys()])
 	#general_save(f"mode=c {title}")
-	plt.show()
+	#plt.show()
 
 def general_coverTi_plot(Alist,ilist,xlabel,title):
 	infs = ilist[0].keys()
@@ -92,7 +20,7 @@ def general_coverTi_plot(Alist,ilist,xlabel,title):
 		general_plot(Alist,ydata,[xlabel,"número de clústeres promedio"],title)
 	plt.legend([f"≥{inf}" for inf in infs])
 	#general_save(f"mode=a {title}")
-	plt.show()
+	#plt.show()
 
 def general_matrix_plot(matrix,clusters,title):
 	tmpmatrix = matrix
@@ -103,7 +31,7 @@ def general_matrix_plot(matrix,clusters,title):
 	plt.matshow(tmpmatrix, cmap="rainbow")
 	plt.title(title)
 	#general_save(f"mode=m {title}")
-	plt.show()
+	#plt.show()
 
 def histogram_cluster_plot(clusters,title,inf=0):
 	plt.xlabel("tamaño de clústeres")
@@ -113,9 +41,9 @@ def histogram_cluster_plot(clusters,title,inf=0):
 		plt.hist([len(clusters[key]) for key in clusters.keys() if len(clusters[key]) >= inft], bins=25)
 	plt.title(f"{title} (≥{rlow}-{rhigh})")
 	#general_save(f"mode=h {title} (≥{inf})")
-	plt.show()
+	#plt.show()
 
-def process_json(json_name,rdata=[1,6,1]):
+def process_json(json_name,rdata):
 	# opening file
 	with open(json_name) as file:
 		json_contents = json.load(file)
@@ -154,11 +82,40 @@ def process_json(json_name,rdata=[1,6,1]):
 		if Ti not in Tlist.keys():
 			Tlist[Ti] = {}
 		Tlist[Ti][cover] = islandmean
-	print(Clist)
-	print(Tlist)
+	#print(Clist)
+	#print(Tlist)
 	return res,Clist,Tlist
 
-def view_kawasaki(json_name,res,Clist,Tlist,mode="c"):
+def time_kawasaki(json_name,folder="test"):
+	# opening file
+	with open(json_name) as file:
+		json_contents = json.load(file)
+	data = {eval(key):json_contents[key]["time"] for key in json_contents.keys()}
+	qs = list(set([key[0] for key in data.keys()]))
+	qs.sort()
+	Ts = list(set([key[1] for key in data.keys()]))
+	Ts.sort()
+	print(Ts)
+	for q in qs:
+		title = "cubrimientos vs tiempo de ejecución"
+		qTs = [key[1] for key in data.keys() if key[0] == q]
+		times = [data[key] for key in data.keys() if key[0] == q]
+		general_plot(qTs,times,["T","tiempo (s)"],title)
+	plt.legend([f"{q}" for q in qs])
+	filename = "qtimes"
+	general_save(f"{folder}/kawasaki/t",filename)
+	plt.show()
+	for T in Ts:
+		title = "temperatura vs tiempo de ejecución"
+		Tqs = [key[0] for key in data.keys() if key[1] == T]
+		times = [data[key] for key in data.keys() if key[1] == T]
+		general_plot(Tqs,times,["cubrimientos","tiempo (s)"],title)
+	plt.legend([f"{T} K" for T in Ts])
+	filename = "Ttimes"
+	general_save(f"{folder}/kawasaki/t",filename)
+	plt.show()
+
+def view_kawasaki(json_name,res,Clist,Tlist,folder="test",mode="c"):
 	# opening file
 	with open(json_name) as file:
 		json_contents = json.load(file)
@@ -174,43 +131,42 @@ def view_kawasaki(json_name,res,Clist,Tlist,mode="c"):
 		for step in selections.keys():
 			matrix = selections[step]["matrix"]
 			clusters = get_clusters(matrix,n)
-			if mode=="h" and int(step)==nstep-1:
+			if mode=="f" and int(step)==nstep-1:
 				title = f"n={n} T={Ti} K cubrim.={cover} paso={int(step):04d}"
 				histogram_cluster_plot(clusters,title,inf=2)
+				filename = f"n{n}T{Ti}c{cover}s{int(step):04d}h"
+				general_save(f"{folder}/kawasaki/{mode}",filename)
+				plt.show()
+				filename = f"n{n}T{Ti}c{cover}s{int(step):04d}m"
 				general_matrix_plot(matrix,clusters,title)
+				general_save(f"{folder}/kawasaki/{mode}",filename)
+				plt.show()
 			if mode=="m":
 				title = f"n={n} cubrim.={cover} T={Ti} K paso={int(step):04d}"
 				general_matrix_plot(matrix,clusters,title)
+				filename = f"n{n}T{Ti}c{cover}s{int(step):04d}"
+				general_save(f"{folder}/kawasaki/{mode}",filename)
+				plt.show()
 		if mode=="c":
 			title = f"n={n} T={Ti} K cubrimiento={cover}"
 			general_cluster_plot(steplist,clusterlists,title)
+			filename = f"n{n}T{Ti}c{cover}s{int(step):04d}"
+			general_save(f"{folder}/kawasaki/{mode}",filename)
+			plt.show()
 	if mode=="a":
 		for C in Clist.keys():
 			Ts = Clist[C].keys()
 			ilist = list(Clist[C].values())
 			title = f"n={n} cubrimiento={C}"
 			general_coverTi_plot(Ts,ilist,"T (K)",title)
+			filename = f"n{n}c{C}"
+			general_save(f"{folder}/kawasaki/{mode}",filename)
+			plt.show()
 		for Ti in Tlist.keys():
 			Cs = Tlist[Ti].keys()
 			ilist = list(Tlist[Ti].values())
 			title = f"n={n} T={Ti} K"
 			general_coverTi_plot(Cs,ilist,"cubrimiento",title)
-
-def time(json_name):
-	# opening file
-	with open(json_name) as file:
-		json_contents = json.load(file)
-	for key in json_contents.keys():
-		print(key,json_contents[key]["time"])
-
-filenames = [
-	"../out_files/mc_kawasaki (n=200, steps=3000).json"
-]
-
-rdata = [2,7,1] # [1,6,1] [6,9,1] range(100,201,50)
-rlow,rhigh,rstep = rdata
-for filename in filenames:
-	time(filename)
-	#res,Clist,Tlist = process_json(filename,rdata)
-	#for mode in ["h"]: # "h","m","c","a"
-		#view_kawasaki(filename,res,Clist,Tlist,mode=mode)
+			filename = f"n{n}T{Ti}"
+			general_save(f"{folder}/kawasaki/{mode}",filename)
+			plt.show()
