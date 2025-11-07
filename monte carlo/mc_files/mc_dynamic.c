@@ -18,11 +18,29 @@ typedef struct
 	double ntotal;
 	double nfirst;
 	double nsecond;
-} averages_tuple;
+	int add_attempt;
+	int add_success;
+	int rem_attempt;
+	int rem_success;
+} dynamic_stats_tuple;
+
+typedef struct 
+{
+	int add_attempt;
+	int add_success;
+	int rem_attempt;
+	int rem_success;
+}  step_stats_tuple;
 
 /* ---------------- Monte Carlo functions ---------------- */
 // Monte Carlo tries
-void mc_n2tries(int **matrix, int n, double mu, double k0, double T) {
+step_stats_tuple mc_n2tries(int **matrix, int n, double mu, double k0, double T) {
+	step_stats_tuple tmp_stats;
+	tmp_stats.add_attempt = 0;
+	tmp_stats.add_success = 0;
+	tmp_stats.rem_attempt = 0;
+	tmp_stats.rem_success = 0;
+
 	int **tmpmatrix = initialize_matrix(3);
 	for (int tmpk = 0; tmpk < n*n; tmpk++) {
 		/*if (tmpk%1000 == 0) {
@@ -41,9 +59,11 @@ void mc_n2tries(int **matrix, int n, double mu, double k0, double T) {
 		int dN;
 		double dE;
 		if (matrix[i][j] == 0) {
+			tmp_stats.add_attempt++;
 			dN = +1;
 			dE = +Eads;
 		} else{
+			tmp_stats.rem_attempt++;
 			dN = -1;
 			dE = -Eads;
 		}
@@ -55,17 +75,36 @@ void mc_n2tries(int **matrix, int n, double mu, double k0, double T) {
 		}
 		int res = Bernoulli(p);
 		if (res == 1) {
+			if (matrix[i][j] == 0) {
+				tmp_stats.add_success++;
+			} else{
+				tmp_stats.rem_success++;
+			}
 			matrix[i][j] = 1-matrix[i][j];
 		}
 	}
 	tmpmatrix = free_matrix(tmpmatrix,3);
+	return tmp_stats;
 }
 
 // Monte Carlo steps
-averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int nstep) {
+dynamic_stats_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int nstep) {
+	dynamic_stats_tuple results;
+	results.theta = 0;
+	results.ntotal = 0;
+	results.nfirst = 0;
+	results.nsecond = 0;
+	results.add_attempt = 0;
+	results.add_success = 0;
+	results.rem_attempt = 0;
+	results.rem_success = 0;
 	double *averagesstep = (double *)malloc(nstep * sizeof(double));
 	for (int l = 0; l < nstep; l++) {
-		mc_n2tries(matrix, n, mu, k0, T);
+		step_stats_tuple tmp_stats = mc_n2tries(matrix, n, mu, k0, T);
+		results.add_attempt += tmp_stats.add_attempt;
+		results.add_success += tmp_stats.add_success;
+		results.rem_attempt += tmp_stats.rem_attempt;
+		results.rem_success += tmp_stats.rem_success;
 		//print_array(matrix,n);
 		int count = 0;
 		for (int i = 0; i < n; i++) {
@@ -81,17 +120,14 @@ averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int
 	}
 	printf("\n");*/
 	// Average struct initialization
-	averages_tuple results;
+	dynamic_stats_tuple results;
 	// Calculate theta
 	double meanmu = 0.0;
 	for (int i = nstep/2; i < nstep; i++) {
 		meanmu += averagesstep[i];
 	}
 	meanmu = meanmu/(nstep/2);
-	// Calculate ntotal, nfirst, nsecond
-	double ntotal = 0.0;
-	double nfirst = 0.0;
-	double nsecond = 0.0;
+	// Calculate ntotal, nfirst, nsecond, 
 	int nhydrogen = 0.0;
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
@@ -101,21 +137,16 @@ averages_tuple mc_steps(int **matrix, int n, double mu, double k0, double T, int
 				int hor = matrix[i][(j - 1 + n) % n] + matrix[i][(j + 1) % n];
 				int di1 = matrix[(i + 1) % n][(j + 1) % n] + matrix[(i + 1) % n][(j - 1 + n) % n];
 				int di2 = matrix[(i - 1 + n) % n][(j + 1) % n] + matrix[(i - 1 + n) % n][(j - 1 + n) % n];
-				ntotal += ver + hor + di1 + di2;
-				nfirst += ver + hor;
-				nsecond += di1 + di2;
+				results.ntotal += ver + hor + di1 + di2;
+				results.nfirst += ver + hor;
+				results.nsecond += di1 + di2;
 			}
 		}
 	}
-	if (nhydrogen == 0) {
-		results.ntotal = 0;
-		results.nfirst = 0;
-		results.nsecond = 0;
-	}
-	else {
-		results.ntotal = ntotal/nhydrogen;
-		results.nfirst = nfirst/nhydrogen;
-		results.nsecond = nsecond/nhydrogen;
+	if (nhydrogen != 0) {
+		results.ntotal = results.ntotal/nhydrogen;
+		results.nfirst = results.nfirst/nhydrogen;
+		results.nsecond = results.nsecond/nhydrogen;
 	}
 	results.theta = meanmu;
 	//printf("promedio de mui=%lf con (%d) pasos: %lf\n",mu,nstep/2,results.theta);
@@ -160,13 +191,13 @@ void mc_classic() {
 					matrix[i1][i2] = 0;
 				}
 			}
-			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
+			dynamic_stats_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
 			printf("mc simulation T: %lf, mu: %d, mean value: %lf\n", T[index], i, results.theta);
 			if (i!=mun-1) {
-				fprintf(mc_classic_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
+				fprintf(mc_classic_file, "[%e,%e,%e,%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 			}
 			else{
-				fprintf(mc_classic_file, "[%e,%e,%e,%e]", results.theta, results.ntotal, results.nfirst, results.nsecond);
+				fprintf(mc_classic_file, "[%e,%e,%e,%e,%e,%e,%e]", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 			}
 		}
 		//printf("pre matrix free\n");
@@ -221,18 +252,18 @@ void mc_hysteresis() {
 		fprintf(mc_hysteresis_file, "\t\t\"averagesmu\": [");
 		int **matrix = initialize_matrix(n);
 		for (int i = 0; i < mun; i++) {
-			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
+			dynamic_stats_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
 			printf("mc simulation (->) T: %lf, mu: %f, mean value: %lf\n", T[index], mu[i], results.theta);
-			fprintf(mc_hysteresis_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
+			fprintf(mc_hysteresis_file, "[%e,%e,%e,%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 		}
 		for (int i = mun-1; 0 <= i; i--) {
-			averages_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
+			dynamic_stats_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
 			printf("mc simulation (<-) T: %lf, mu: %f, mean value: %lf\n", T[index], mu[i], results.theta);
 			if (i!=0) {
-				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond);
+				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 			}
 			else{
-				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e]", results.theta, results.ntotal, results.nfirst, results.nsecond);
+				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e,%e,%e,%e]", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 			}
 		}
 		matrix = free_matrix(matrix,n);

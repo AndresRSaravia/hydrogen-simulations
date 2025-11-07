@@ -147,12 +147,14 @@ outvalues1 = [
 	[("v8c00c",-7551.7915005573),("v8c00s",-7550.5728446869)],
 ]
 
+# viejo: -31.744828518, nuevo: -31.745127163
+
 for item in outvalues:
 	outname = item[0][0]
 	outvalc = item[0][1]
 	outvals = item[1][1]
 	outdiff = (outvalc-outvals)*13.605684958731
-	Eads = (outdiff - 0.5*(-31.744828518))
+	Eads = (outdiff - 0.5*(-31.745127163))
 	poss_pos_better[outname]["diffcs"] = outdiff
 	poss_pos_better[outname]["Eads"] = Eads
 print(poss_pos_better)
@@ -166,7 +168,7 @@ for item in outvalues:
 	outvalc = item[0][1]*13.605684958731
 	outvals = item[1][1]*13.605684958731
 	outdiff = (outvalc-outvals)
-	Eads = (outdiff - 0.5*(-31.744828518))
+	Eads = (outdiff - 0.5*(-31.745127163))
 	if int(outname[1])!=0:
 		J = (Eads-poss_pos_better["v0c00c"]["Eads"])/int(outname[1])
 		text += f"\\texttt{{{outname[:len(outname) - 1]}}} & ${round(outvalc,p)}$ & ${round(outvals,p)}$ & ${round(outdiff,p)}$ & ${round(Eads,p)}$ & ${round(J,p)}$"
@@ -206,4 +208,4 @@ print(text)
 
 kb = 8.617333262e-5
 print((np.array(Jlist)).mean())
-print(-2*(np.array(Jlist)).mean()/(kb*np.log(1+np.sqrt(2))))
+print((1/2)*(np.array(Jlist)).mean()/(kb*np.log(np.sqrt(2)-1)))
