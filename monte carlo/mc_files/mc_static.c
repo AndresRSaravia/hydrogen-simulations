@@ -14,12 +14,11 @@
 /* ---------------- Average struct ---------------- */
 typedef struct 
 {
-	int index_i;
-	int index_j;
-	int index_k;
-	int index_l;
-	bool res;
-} data_tuple;
+	int selection_00;
+	int selection_11;
+	int selection_01;
+	int selection_01_success;
+} static_stats_tuple;
 
 /* ---------------- Monte Carlo functions ---------------- */
 // Get Eads mean
@@ -39,22 +38,22 @@ double get_Eads_mean(int **matrix, int n) {
 }
 	
 // Monte Carlo selection
-data_tuple mc_kawasaki_selection(int **matrix, int n, double k0, double T) {
-	data_tuple data;
+int mc_kawasaki_selection(int **matrix, int n, double k0, double T) {
+	int trycode;
+	// 0 -> selection_00
+	// 1 -> selection_11
+	// 2 -> selection_01
+	// 3 -> selection_01_success
 	int **tmpmatrix_ij = initialize_matrix(3);
 	int **tmpmatrix_kl = initialize_matrix(3);
 	int i = udiscrete(0,n-1);
 	int j = udiscrete(0,n-1);
 	int k = udiscrete(0,n-1);
 	int l = udiscrete(0,n-1);
-	data.index_i = i;
-	data.index_j = j;
-	data.index_k = k;
-	data.index_l = l;
-	data.res = matrix[i][j]!=matrix[k][l];
 	//printf("selection %d %d with %d\n",i,j,n);
 	//printf("selection %d %d with %d\n",k,l,n);
 	if (matrix[i][j]!=matrix[k][l]) {
+		trycode = 2;
 		bool hydrogen_ij = matrix[i][j]==1;
 		int numnei_ij,numnei_kl;
 		double diff_energy_ij,diff_energy_kl;
@@ -90,18 +89,27 @@ data_tuple mc_kawasaki_selection(int **matrix, int n, double k0, double T) {
 		}
 		int res = Bernoulli(p);
 		if (res == 1 && hydrogen_ij) {
+			trycode = 3;
 			matrix[k][l] = 1;
 		} else if (res == 1 && !hydrogen_ij) {
+			trycode = 3;
 			matrix[i][j] = 1;
 		} else if (res == 0 && hydrogen_ij) {
 			matrix[i][j] = 1;
 		} else { // (res == 0 && !hydrogen_ij)
 			matrix[k][l] = 1;
 		}
+	} else {
+		if (matrix[i][j]==0) {
+			trycode = 0;
+		}
+		else {
+			trycode = 1;
+		}
 	}
 	tmpmatrix_ij = free_matrix(tmpmatrix_ij,3);
 	tmpmatrix_kl = free_matrix(tmpmatrix_kl,3);
-	return data;
+	return trycode;
 }
 
 // Monte Carlo (Kawasaki)
@@ -109,10 +117,10 @@ void mc_kawasaki() {
 	// Initialization of variables
 	int n = 200; // 200
 	double k0 = 8.617333262e-5;
-	double T[] = {20.,40.,60.,80.,100.};
-	int Tn = 5; // 5
-	double covers[] = {0.3,0.5,0.7};
-	int ncover = 3; // 3
+	double T[] = {20.,40.,60.,80.,100.,300.,400.};
+	int Tn = 7; // 7
+	double covers[] = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
+	int ncover = 9; // 9
 	int nstep = 2000; // 3000
 	int eachstep = 100; // PLEASE CAREFUL WITH THIS, CONSIDER THE RATIO OF VARIABLES n, nstep and eachstep BIG NUMBERS -> BIG STORAGE
 	int laststep = 5;
@@ -124,6 +132,11 @@ void mc_kawasaki() {
 	fprintf(mc_kawasaki_file, "{\n");
 	for (int coveri = 0; coveri < ncover; coveri++) {
 		for (int index = 0; index < Tn; index++) {
+			static_stats_tuple results;
+			results.selection_00 = 0;
+			results.selection_11 = 0;
+			results.selection_01 = 0;
+			results.selection_01_success = 0;
 			fprintf(mc_kawasaki_file, "\t\"(%f,%f)\":{\n", covers[coveri],T[index]);
 			fprintf(mc_kawasaki_file, "\t\t\"n\": %d,\n", n);
 			fprintf(mc_kawasaki_file, "\t\t\"nstep\": %d,\n", nstep);
@@ -136,13 +149,24 @@ void mc_kawasaki() {
 			cover_matrix(matrix,n,covers[coveri]);
 			for (int step = 0; step < nstep; step++) {
 				for (int try = 0; try < n*n; try++) {
-					data_tuple data = mc_kawasaki_selection(matrix,n,k0,T[index]);
-					//printf("mc simulation T: %lf, step: %d, state: %d ((%d,%d),(%d,%d))\n", T[index], step, data.res, data.index_i, data.index_j, data.index_k, data.index_l);
+					int trycode = mc_kawasaki_selection(matrix,n,k0,T[index]);
+					if (trycode == 0) {
+						results.selection_00++;
+					}
+					else if (trycode == 1) {
+						results.selection_11++;
+					}
+					else if (trycode == 1) {
+						results.selection_01++;
+					}
+					else {
+						results.selection_01_success++;
+					}
 				}
 				printf("mc simulation cover: %f T: %lf, step: %d\n", covers[coveri], T[index], step);
 				if (step%eachstep==0 || step==nstep-1 || step>=nstep-laststep) {
 					fprintf(mc_kawasaki_file, "\t\t\t\"%d\": {\n", step);
-					//fprintf(mc_kawasaki_file, "\t\t\t\t\"indexes_ijkl_postvalues\": [[%d,%d,%d],[%d,%d,%d]],\n", data.index_i, data.index_j, matrix[data.index_i][data.index_j], data.index_k, data.index_l, matrix[data.index_k][data.index_l]);
+					fprintf(mc_kawasaki_file, "\t\t\t\t\"results\": [%d,%d,%d,%d],\n", results.selection_00, results.selection_01, results.selection_01_success, results.selection_01_success);
 					fprintf(mc_kawasaki_file, "\t\t\t\t\"matrix\": [\n");
 					for (int i = 0; i < n; i++) {
 						fprintf(mc_kawasaki_file, "\t\t\t\t\t[");
