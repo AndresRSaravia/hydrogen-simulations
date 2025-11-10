@@ -17,7 +17,7 @@
 int main() {
 	srand(time(NULL));
 	for (int i = 0; i < 1000; i++) {udiscrete(0,5);}
-	int mode = 0;
+	int mode = 2;
     switch (mode) {
     case 0:
 		// Gran canónico

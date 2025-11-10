@@ -40,7 +40,6 @@ step_stats_tuple mc_n2tries(int **matrix, int n, double mu, double k0, double T)
 	tmp_stats.add_success = 0;
 	tmp_stats.rem_attempt = 0;
 	tmp_stats.rem_success = 0;
-
 	int **tmpmatrix = initialize_matrix(3);
 	for (int tmpk = 0; tmpk < n*n; tmpk++) {
 		/*if (tmpk%1000 == 0) {
@@ -156,6 +155,10 @@ dynamic_stats_tuple mc_steps(int **matrix, int n, double mu, double k0, double T
 
 void mc_classic() {
 	// Initialization of variables
+	// int upper limit 2147483647
+	// unsigned int breaks the limit of struct size for 4 fields
+	// to avoid overflow, find n and nstep such that 2147483647-nsetp*n*n>0
+	// given nsetp=100 the maximum n is 4634 approximately
 	int n = 200; // 200
 	int mun = 200; // 200
 	double mustart = -1.0, muend = -0.25; // mustart = -1.0, muend = -0.25
@@ -193,10 +196,10 @@ void mc_classic() {
 			dynamic_stats_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
 			printf("mc simulation T: %lf, mu: %d, mean value: %lf\n", T[index], i, results.theta);
 			if (i!=mun-1) {
-				fprintf(mc_classic_file, "[%e,%e,%e,%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
+				fprintf(mc_classic_file, "[%e,%e,%e,%e,%d,%d,%d,%d],", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 			}
 			else{
-				fprintf(mc_classic_file, "[%e,%e,%e,%e,%e,%e,%e]", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
+				fprintf(mc_classic_file, "[%e,%e,%e,%e,%d,%d,%d,%d]", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 			}
 		}
 		//printf("pre matrix free\n");
@@ -253,16 +256,16 @@ void mc_hysteresis() {
 		for (int i = 0; i < mun; i++) {
 			dynamic_stats_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
 			printf("mc simulation (->) T: %lf, mu: %f, mean value: %lf\n", T[index], mu[i], results.theta);
-			fprintf(mc_hysteresis_file, "[%e,%e,%e,%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
+			fprintf(mc_hysteresis_file, "[%e,%e,%e,%e,%d,%d,%d,%d],", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 		}
 		for (int i = mun-1; 0 <= i; i--) {
 			dynamic_stats_tuple results = mc_steps(matrix,n,mu[i],k0,T[index],nstep);
 			printf("mc simulation (<-) T: %lf, mu: %f, mean value: %lf\n", T[index], mu[i], results.theta);
 			if (i!=0) {
-				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e,%e,%e,%e],", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
+				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e,%d,%d,%d,%d],", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 			}
 			else{
-				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e,%e,%e,%e]", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
+				fprintf(mc_hysteresis_file, "[%e,%e,%e,%e,%d,%d,%d,%d]", results.theta, results.ntotal, results.nfirst, results.nsecond, results.add_attempt, results.add_success, results.rem_attempt, results.rem_success);
 			}
 		}
 		matrix = free_matrix(matrix,n);

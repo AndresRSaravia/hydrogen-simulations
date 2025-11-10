@@ -115,13 +115,17 @@ int mc_kawasaki_selection(int **matrix, int n, double k0, double T) {
 // Monte Carlo (Kawasaki)
 void mc_kawasaki() {
 	// Initialization of variables
+	// int upper limit 2147483647
+	// unsigned int breaks the limit of struct size for 4 fields
+	// to avoid overflow, find n and nstep such that 2147483647-nsetp*n*n>0
+	// given nsetp=100 the maximum n is 4634 approximately
 	int n = 200; // 200
 	double k0 = 8.617333262e-5;
 	double T[] = {20.,40.,60.,80.,100.,300.,400.};
 	int Tn = 7; // 7
 	double covers[] = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
 	int ncover = 9; // 9
-	int nstep = 2000; // 3000
+	int nstep = 3000; // 3000
 	int eachstep = 100; // PLEASE CAREFUL WITH THIS, CONSIDER THE RATIO OF VARIABLES n, nstep and eachstep BIG NUMBERS -> BIG STORAGE
 	int laststep = 5;
 	// File variable
@@ -132,11 +136,6 @@ void mc_kawasaki() {
 	fprintf(mc_kawasaki_file, "{\n");
 	for (int coveri = 0; coveri < ncover; coveri++) {
 		for (int index = 0; index < Tn; index++) {
-			static_stats_tuple results;
-			results.selection_00 = 0;
-			results.selection_11 = 0;
-			results.selection_01 = 0;
-			results.selection_01_success = 0;
 			fprintf(mc_kawasaki_file, "\t\"(%f,%f)\":{\n", covers[coveri],T[index]);
 			fprintf(mc_kawasaki_file, "\t\t\"n\": %d,\n", n);
 			fprintf(mc_kawasaki_file, "\t\t\"nstep\": %d,\n", nstep);
@@ -148,6 +147,11 @@ void mc_kawasaki() {
 			int **matrix = initialize_matrix(n);
 			cover_matrix(matrix,n,covers[coveri]);
 			for (int step = 0; step < nstep; step++) {
+				static_stats_tuple results;
+				results.selection_00 = 0;
+				results.selection_11 = 0;
+				results.selection_01 = 0;
+				results.selection_01_success = 0;
 				for (int try = 0; try < n*n; try++) {
 					int trycode = mc_kawasaki_selection(matrix,n,k0,T[index]);
 					if (trycode == 0) {
@@ -156,17 +160,18 @@ void mc_kawasaki() {
 					else if (trycode == 1) {
 						results.selection_11++;
 					}
-					else if (trycode == 1) {
+					else if (trycode == 2) {
 						results.selection_01++;
 					}
 					else {
+						results.selection_01++;
 						results.selection_01_success++;
 					}
 				}
 				printf("mc simulation cover: %f T: %lf, step: %d\n", covers[coveri], T[index], step);
 				if (step%eachstep==0 || step==nstep-1 || step>=nstep-laststep) {
 					fprintf(mc_kawasaki_file, "\t\t\t\"%d\": {\n", step);
-					fprintf(mc_kawasaki_file, "\t\t\t\t\"results\": [%d,%d,%d,%d],\n", results.selection_00, results.selection_01, results.selection_01_success, results.selection_01_success);
+					fprintf(mc_kawasaki_file, "\t\t\t\t\"tries_per_step\": [%d,%d,%d,%d],\n", results.selection_00, results.selection_11, results.selection_01, results.selection_01_success);
 					fprintf(mc_kawasaki_file, "\t\t\t\t\"matrix\": [\n");
 					for (int i = 0; i < n; i++) {
 						fprintf(mc_kawasaki_file, "\t\t\t\t\t[");
