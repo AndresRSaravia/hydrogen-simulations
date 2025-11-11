@@ -2,3 +2,5 @@ monte carlo/monte.exe
 /.vscode
 /monte carlo/.vscode
 /monte carlo/viewers/__pycache__
+/monte carlo/out_files
+/monte carlo/png_files
