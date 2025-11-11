@@ -237,7 +237,7 @@ void mc_hysteresis() {
 	double k0 = 8.617333262e-5;
 	double T[] = {1.,5.,10.,15.,20.,30.,40.,50.,60.,70.,80.,90.,100.};
 	int Tn = 13; // 13
-	int nstep = 50; // 100
+	int nstep = 100; // 100
 	// File variable
 	char filename[1024] = "out_files/mc_hysteresis.json";
 	snprintf(filename, sizeof(filename), "out_files/mc_hysteresis (n=%d, muinfo=(%f,%f,%d), steps=%d).json", n, mustart, muend, mun, nstep);
