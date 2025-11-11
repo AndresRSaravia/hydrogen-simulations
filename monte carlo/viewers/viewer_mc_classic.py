@@ -19,6 +19,31 @@ def time_classic(json_name,folder="test"):
 	filename = "Ttimes"
 	general_save(f"{folder}/classic",filename)
 	plt.show()
+	for Ti in json_contents.keys():
+		dicchosen = json_contents[Ti]
+		mubot,mutop,mun = dicchosen["muinfo"]
+		add_attempts = [item[4]/(item[4]+item[6]) for item in dicchosen["averagesmu"]]
+		add_success = [item[5]/(item[4]+item[6]) for item in dicchosen["averagesmu"]]
+		rem_attempts = [item[6]/(item[4]+item[6]) for item in dicchosen["averagesmu"]]
+		rem_success = [item[7]/(item[4]+item[6]) for item in dicchosen["averagesmu"]]
+		istart = 0
+		iend = len(rem_attempts)
+		labels = ["valores μ","intentos"]
+		title = f"Intentos Totales T={float(Ti)}"
+		x = np.linspace(mubot,mutop,mun)[istart:iend]
+		general_plot(x,rem_attempts[istart:iend],labels,title)
+		general_plot(x,add_attempts[istart:iend],labels,title)
+		plt.legend(labels=["inserciones","remociones"])
+		filename = f"trytot{float(Ti)}"
+		general_save(f"{folder}/classic",filename)
+		plt.show()
+		title = f"Intentos Aceptados T={float(Ti)}"
+		general_plot(x,rem_success[istart:iend],labels,title)
+		general_plot(x,add_success[istart:iend],labels,title)
+		plt.legend(labels=["inserciones","remociones"])
+		filename = f"tryapr{float(Ti)}"
+		general_save(f"{folder}/classic",filename)
+		plt.show()
 
 def view_classic(json_name,dropkeys,code,folder="test"):
 	with open(json_name) as file:

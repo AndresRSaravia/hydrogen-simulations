@@ -3,10 +3,11 @@ import numpy as np
 import json
 from plot_handlers import general_plot,general_save
 from cluster_handlers import get_clusters,get_cluster_number
+from collections import Counter
 
 def general_cluster_plot(steplist,clusterlists,title):
 	for inf in clusterlists.keys():
-		general_plot(steplist[1:],clusterlists[inf][1:],["pasos","número de clústeres"],title)
+		general_plot(steplist[1:],clusterlists[inf][1:],["pasos","número de grupos"],title)
 	plt.legend([f"≥{elem}" for elem in clusterlists.keys()])
 	#general_save(f"mode=c {title}")
 	#plt.show()
@@ -17,7 +18,7 @@ def general_coverTi_plot(Alist,ilist,xlabel,title):
 		ydata = []
 		for index in range(len(Alist)):
 			ydata.append(ilist[index][inf])
-		general_plot(Alist,ydata,[xlabel,"número de clústeres promedio"],title)
+		general_plot(Alist,ydata,[xlabel,"número de grupos promedio"],title)
 	plt.legend([f"≥{inf}" for inf in infs])
 	#general_save(f"mode=a {title}")
 	#plt.show()
@@ -34,11 +35,22 @@ def general_matrix_plot(matrix,clusters,title):
 	#plt.show()
 
 def histogram_cluster_plot(clusters,title,inf=0):
-	plt.xlabel("tamaño de clústeres")
-	plt.ylabel("número de clústeres")
+	plt.xlabel("tamaño de grupos (log)")
+	plt.ylabel("número de grupos (log)")
 	rlow,rhigh,rstep = [2,7,1]
+	fig, ax = plt.subplots()
+	ax.set_yscale("log")
+	ax.set_xscale("log")
 	for inft in range(rlow,rhigh,rstep):
-		plt.hist([len(clusters[key]) for key in clusters.keys() if len(clusters[key]) >= inft], bins=25)
+		ckeys = clusters.keys()
+		tmp = [len(clusters[key]) for key in ckeys if len(clusters[key]) >= inft]
+		data = Counter(tmp)
+		xdata = list(data.keys())
+		xdata.sort()
+		ydata = [data[key] for key in xdata]
+		print(data)
+		plt.plot(xdata, ydata, '-o')
+	plt.legend([f"≥{inf}" for inf in range(rlow,rhigh,rstep)])
 	plt.title(f"{title} (≥{rlow}-{rhigh})")
 	#general_save(f"mode=h {title} (≥{inf})")
 	#plt.show()
@@ -137,10 +149,12 @@ def view_kawasaki(json_name,res,Clist,Tlist,folder="test",mode="c"):
 				filename = f"n{n}T{Ti}c{cover}s{int(step):04d}h"
 				general_save(f"{folder}/kawasaki/{mode}",filename)
 				plt.show()
+				"""
 				filename = f"n{n}T{Ti}c{cover}s{int(step):04d}m"
 				general_matrix_plot(matrix,clusters,title)
 				general_save(f"{folder}/kawasaki/{mode}",filename)
 				plt.show()
+				"""
 			if mode=="m":
 				title = f"n={n} cubrim.={cover} T={Ti} K paso={int(step):04d}"
 				general_matrix_plot(matrix,clusters,title)
