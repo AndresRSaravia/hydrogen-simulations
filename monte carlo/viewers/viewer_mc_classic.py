@@ -14,7 +14,7 @@ def time_classic(json_name,folder="test"):
 	title = "temperatura vs tiempo de ejecución"
 	Ts = data.keys()
 	times = data.values()
-	general_plot(Ts,times,["T (K)","tiempo (s)"],title)
+	general_plot(Ts,times,["T (K)","tiempo (s)"],title,marker="o")
 	#plt.legend([f"{T} K" for T in Ts])
 	filename = "Ttimes"
 	general_save(f"{folder}/classic",filename)
@@ -29,19 +29,14 @@ def time_classic(json_name,folder="test"):
 		istart = 0
 		iend = len(rem_attempts)
 		labels = ["valores μ","intentos"]
-		title = f"Intentos Totales T={float(Ti)}"
+		title = f"Intentos Totales/Aceptados T={float(Ti)}"
 		x = np.linspace(mubot,mutop,mun)[istart:iend]
-		general_plot(x,rem_attempts[istart:iend],labels,title)
-		general_plot(x,add_attempts[istart:iend],labels,title)
-		plt.legend(labels=["inserciones","remociones"])
-		filename = f"trytot{float(Ti)}"
-		general_save(f"{folder}/classic",filename)
-		plt.show()
-		title = f"Intentos Aceptados T={float(Ti)}"
-		general_plot(x,rem_success[istart:iend],labels,title)
-		general_plot(x,add_success[istart:iend],labels,title)
-		plt.legend(labels=["inserciones","remociones"])
-		filename = f"tryapr{float(Ti)}"
+		general_plot(x,add_attempts[istart:iend],labels,title,marker="x")
+		general_plot(x,add_success[istart:iend],labels,title,marker="x")
+		general_plot(x,rem_attempts[istart:iend],labels,title,marker="|")
+		general_plot(x,rem_success[istart:iend],labels,title,marker="|")
+		plt.legend(labels=["inserciones (tot)","inserciones (apr)","remociones (tot)","remociones (apr)"])
+		filename = f"try{float(Ti)}"
 		general_save(f"{folder}/classic",filename)
 		plt.show()
 

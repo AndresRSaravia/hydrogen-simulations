@@ -121,8 +121,8 @@ void mc_kawasaki() {
 	// given nsetp=100 the maximum n is 4634 approximately
 	int n = 200; // 200
 	double k0 = 8.617333262e-5;
-	double T[] = {20.,40.,60.,80.,100.,300.,400.};
-	int Tn = 7; // 7
+	double T[] = {20.,40.,60.,80.,100.,200.,300.,400.};
+	int Tn = 8; // 8
 	double covers[] = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9};
 	int ncover = 9; // 9
 	int nstep = 3000; // 3000

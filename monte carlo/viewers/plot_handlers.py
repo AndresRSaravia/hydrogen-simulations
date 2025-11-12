@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 
-def general_plot(x,y,labels,title=""):
+def general_plot(x,y,labels,title="",marker=""):
 	xlabel,ylabel = labels
 	plt.xlabel(xlabel)
 	plt.ylabel(ylabel)
 	plt.title(title)
-	plt.plot(x,y,marker="o")
+	plt.plot(x,y,marker=marker)
 
 def general_save(folder,filename):
 	plt.savefig(f"../png_files/{folder}/{filename}.png")

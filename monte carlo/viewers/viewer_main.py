@@ -21,7 +21,7 @@ def kawasaki():
 		create_folder(f"../png_files/{folder}/kawasaki/t")
 		time_kawasaki(filename,folder=folder)
 		res,Clist,Tlist = process_json(filename,rdata)
-		for mode in ["f"]: # ,"m","c","a"
+		for mode in ["f","m","c","a"]: # 
 			view_kawasaki(filename,res,Clist,Tlist,folder=folder,mode=mode)
 
 def hysteresis():
@@ -41,16 +41,31 @@ def classic():
 		"../out_files/mc_classic (n=200, muinfo=(-1.000000,-0.250000,200), steps=100).json":"official"
 	}
 	
-	dropkeys = ["400.000000","500.000000","700.000000","800.000000","900.000000"]
+	dropkeys = [
+		"40.000000",
+		"60.000000",
+		"80.000000",
+		"100.000000",
+		"200.000000",
+		"300.000000",
+		"400.000000",
+		"500.000000",
+		"600.000000",
+		"700.000000",
+		"800.000000",
+		"900.000000",
+		"1000.000000",
+	]
+	dropkeys = [x for x in dropkeys if x not in ["40.000000","200.000000","300.000000","400.000000","600.000000","1000.000000"]]
 	
 	for filename in filenames_folder.keys():
 		folder = filenames_folder[filename]
 		create_folder(f"../png_files/{folder}/")
 		create_folder(f"../png_files/{folder}/classic")
 		time_classic(filename,folder=folder)
-		view_classic(filename,dropkeys,code="a",folder=folder)
-		view_classic(filename,[],code="b",folder=folder)
-		view_classic(filename,[],code="c",folder=folder)
+		#view_classic(filename,dropkeys,code="a",folder=folder)
+		#view_classic(filename,[],code="b",folder=folder)
+		#view_classic(filename,[],code="c",folder=folder)
 
 
-classic()
+kawasaki()

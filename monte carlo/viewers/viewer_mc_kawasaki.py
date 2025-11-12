@@ -35,12 +35,12 @@ def general_matrix_plot(matrix,clusters,title):
 	#plt.show()
 
 def histogram_cluster_plot(clusters,title,inf=0):
-	plt.xlabel("tamaño de grupos (log)")
-	plt.ylabel("número de grupos (log)")
+	plt.xlabel("tamaño de grupos")
+	plt.ylabel("número de grupos") # (log)
 	rlow,rhigh,rstep = [2,7,1]
 	fig, ax = plt.subplots()
-	ax.set_yscale("log")
-	ax.set_xscale("log")
+	#ax.set_yscale("log")
+	#ax.set_xscale("log")
 	for inft in range(rlow,rhigh,rstep):
 		ckeys = clusters.keys()
 		tmp = [len(clusters[key]) for key in ckeys if len(clusters[key]) >= inft]

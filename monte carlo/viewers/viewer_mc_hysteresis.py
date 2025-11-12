@@ -14,8 +14,8 @@ def time_hysteresis(json_name,folder="test"):
 	title = "temperatura vs tiempo de ejecución"
 	Ts = data.keys()
 	times = data.values()
-	general_plot(Ts,times,["T (K)","tiempo (s)"],title)
-	plt.legend([f"{T} K" for T in Ts])
+	general_plot(Ts,times,["T (K)","tiempo (s)"],title,marker="o")
+	#plt.legend([f"{T} K" for T in Ts])
 	filename = "Ttimes"
 	general_save(f"{folder}/hysteresis",filename)
 	plt.show()
