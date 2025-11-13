@@ -35,12 +35,12 @@ def general_matrix_plot(matrix,clusters,title):
 	#plt.show()
 
 def histogram_cluster_plot(clusters,title,inf=0):
-	plt.xlabel("tamaño de grupos")
-	plt.ylabel("número de grupos") # (log)
+	plt.xlabel("tamaño de grupos # (log)")
+	plt.ylabel("número de grupos # (log)")
 	rlow,rhigh,rstep = [2,7,1]
 	fig, ax = plt.subplots()
-	#ax.set_yscale("log")
-	#ax.set_xscale("log")
+	ax.set_yscale("log")
+	ax.set_xscale("log")
 	for inft in range(rlow,rhigh,rstep):
 		ckeys = clusters.keys()
 		tmp = [len(clusters[key]) for key in ckeys if len(clusters[key]) >= inft]
@@ -155,7 +155,7 @@ def view_kawasaki(json_name,res,Clist,Tlist,folder="test",mode="c"):
 				general_save(f"{folder}/kawasaki/{mode}",filename)
 				plt.show()
 				"""
-			if mode=="m":
+			if mode=="m" and (int(step)==100 or int(step)==1000 or int(step)==2000 or int(step)==2999):
 				title = f"n={n} cubrim.={cover} T={Ti} K paso={int(step):04d}"
 				general_matrix_plot(matrix,clusters,title)
 				filename = f"n{n}T{Ti}c{cover}s{int(step):04d}"

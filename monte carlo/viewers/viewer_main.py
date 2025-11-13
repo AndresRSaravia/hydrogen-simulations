@@ -21,7 +21,7 @@ def kawasaki():
 		create_folder(f"../png_files/{folder}/kawasaki/t")
 		time_kawasaki(filename,folder=folder)
 		res,Clist,Tlist = process_json(filename,rdata)
-		for mode in ["f","m","c","a"]: # 
+		for mode in ["f"]: # "f","m","c","a"
 			view_kawasaki(filename,res,Clist,Tlist,folder=folder,mode=mode)
 
 def hysteresis():
