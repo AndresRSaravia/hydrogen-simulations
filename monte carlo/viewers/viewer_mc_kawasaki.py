@@ -107,7 +107,6 @@ def time_kawasaki(json_name,folder="test"):
 	qs.sort()
 	Ts = list(set([key[1] for key in data.keys()]))
 	Ts.sort()
-	print(Ts)
 	for q in qs:
 		title = "cubrimientos vs tiempo de ejecución"
 		qTs = [key[1] for key in data.keys() if key[0] == q]
@@ -126,6 +125,109 @@ def time_kawasaki(json_name,folder="test"):
 	filename = "Ttimes"
 	general_save(f"{folder}/kawasaki/t",filename)
 	plt.show()
+
+	data = {}
+	for key in json_contents.keys():
+		d = {}
+		d["sum"] = {
+			"sel_00": 0,
+			"sel_11": 0,
+			"sel_01": 0,
+			"sel_01_success": 0,
+			"total": 0
+		}
+		dic_steps = json_contents[key]["selections"]
+		for step in dic_steps.keys():
+			s = eval(step)
+			d[s] = {
+				"sel_00": 0,
+				"sel_11": 0,
+				"sel_01": 0,
+				"sel_01_success": 0,
+				"total": 0
+			}
+			d[s]["sel_00"] = dic_steps[step]["tries_per_step"][0]
+			d[s]["sel_11"] = dic_steps[step]["tries_per_step"][1]
+			d[s]["sel_01"] = dic_steps[step]["tries_per_step"][2]
+			d[s]["sel_01_success"] = dic_steps[step]["tries_per_step"][3]
+			d[s]["total"] = sum(dic_steps[step]["tries_per_step"][0:3])
+			d["sum"]["sel_00"] += d[s]["sel_00"]
+			d["sum"]["sel_11"] += d[s]["sel_11"]
+			d["sum"]["sel_01"] += d[s]["sel_01"]
+			d["sum"]["sel_01_success"] += d[s]["sel_01_success"]
+			d["sum"]["total"] += d[s]["total"]
+		data[eval(key)] = d
+		"""	#print(data)
+	for q in qs:
+		for T in Ts:
+			title = f"intentos de selección cubrim.={q} T={T} K"
+			steps = [key for key in data[(q,T)].keys() if key!="sum"]
+			sel_00 = [data[(q,T)][step]["sel_00"]/data[(q,T)][step]["total"] for step in steps]
+			sel_11 = [data[(q,T)][step]["sel_11"]/data[(q,T)][step]["total"] for step in steps]
+			sel_01 = [data[(q,T)][step]["sel_01"]/data[(q,T)][step]["total"] for step in steps]
+			sel_01_success = [data[(q,T)][step]["sel_01_success"]/data[(q,T)][step]["total"] for step in steps]
+			#print(len(steps),len(sel_00),(q,T))
+			#print(data[(q,T)][step]["sel_00"])
+			general_plot(steps,sel_00,["pasos","intentos"],title)
+			general_plot(steps,sel_11,["pasos","intentos"],title)
+			general_plot(steps,sel_01,["pasos","intentos"],title)
+			general_plot(steps,sel_01_success,["pasos","intentos"],title)
+			sel_legend = [
+				"intento (0,0)",
+				"intento (1,1)",
+				"intento (0,1)",
+				"intento exitoso (0,1)"
+			]
+			plt.legend(sel_legend)
+			filename = f"selc{q}T{T}"
+			general_save(f"{folder}/kawasaki/t",filename)
+			plt.show()
+	"""
+	for q in qs:
+		qTs = [key[1] for key in data.keys() if key[0] == q]
+		sels_00 = [data[key]["sum"]["sel_00"]/data[key]["sum"]["total"] for key in data.keys() if key[0] == q]
+		sels_11 = [data[key]["sum"]["sel_11"]/data[key]["sum"]["total"] for key in data.keys() if key[0] == q]
+		sels_01 = [data[key]["sum"]["sel_01"]/data[key]["sum"]["total"] for key in data.keys() if key[0] == q]
+		sels_01_success = [data[key]["sum"]["sel_01_success"]/data[key]["sum"]["total"] for key in data.keys() if key[0] == q]
+		title = f"intentos de selección cubrim.={q}"
+		general_plot(qTs,sels_00,["pasos","intentos"],title)
+		general_plot(qTs,sels_11,["pasos","intentos"],title)
+		general_plot(qTs,sels_01,["pasos","intentos"],title)
+		general_plot(qTs,sels_01_success,["pasos","intentos"],title)
+		sel_legend = [
+			"intento (0,0)",
+			"intento (1,1)",
+			"intento (0,1)",
+			"intento exitoso (0,1)"
+		]
+		plt.legend(sel_legend)
+		filename = f"selsumc{q}"
+		general_save(f"{folder}/kawasaki/t",filename)
+		plt.show()
+
+	for T in Ts:
+		Tqs = [key[0] for key in data.keys() if key[1] == T]
+		sels_00 = [data[key]["sum"]["sel_00"]/data[key]["sum"]["total"] for key in data.keys() if key[1] == T]
+		sels_11 = [data[key]["sum"]["sel_11"]/data[key]["sum"]["total"] for key in data.keys() if key[1] == T]
+		sels_01 = [data[key]["sum"]["sel_01"]/data[key]["sum"]["total"] for key in data.keys() if key[1] == T]
+		sels_01_success = [data[key]["sum"]["sel_01_success"]/data[key]["sum"]["total"] for key in data.keys() if key[1] == T]
+		title = f"intentos de selección T={T}"
+		print(Tqs,sels_00,data.keys())
+		general_plot(Tqs,sels_00,["pasos","intentos"],title)
+		general_plot(Tqs,sels_11,["pasos","intentos"],title)
+		general_plot(Tqs,sels_01,["pasos","intentos"],title)
+		general_plot(Tqs,sels_01_success,["pasos","intentos"],title)
+		sel_legend = [
+			"intento de selección (0,0)",
+			"intento de selección (1,1)",
+			"intento de selección (0,1)",
+			"intento de selección exitosa (0,1)"
+		]
+		plt.legend(sel_legend)
+		filename = f"selsumT{T}"
+		general_save(f"{folder}/kawasaki/t",filename)
+		plt.show()
+
 
 def view_kawasaki(json_name,res,Clist,Tlist,folder="test",mode="c"):
 	# opening file
